@@ -1,11 +1,56 @@
-@import 'tailwindcss';
+@import 'bootstrap/dist/css/bootstrap.min.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+:root {
+    --sa-primary: #0f766e;
+    --sa-primary-dark: #115e59;
+    --sa-surface: #f4f7f6;
 }
+
+body {
+    background: var(--sa-surface);
+    color: #1f2937;
+}
+
+.navbar-brand-mark {
+    display: inline-grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: .65rem;
+    background: var(--sa-primary);
+    color: white;
+    font-weight: 800;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--sa-primary);
+    --bs-btn-border-color: var(--sa-primary);
+    --bs-btn-hover-bg: var(--sa-primary-dark);
+    --bs-btn-hover-border-color: var(--sa-primary-dark);
+}
+
+.card {
+    border: 0;
+    box-shadow: 0 .125rem .75rem rgba(15, 23, 42, .06);
+}
+
+.metric-card .metric-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+}
+
+.table > :not(caption) > * > * {
+    vertical-align: middle;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+@media (max-width: 767.98px) {
+    .mobile-stack td,
+    .mobile-stack th {
+        white-space: nowrap;
+    }
+}
+
