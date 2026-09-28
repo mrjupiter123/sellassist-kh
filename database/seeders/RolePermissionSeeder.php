@@ -20,6 +20,7 @@ class RolePermissionSeeder extends Seeder
         'payments.refund',
         'inventory.view', 'inventory.adjust',
         'returns.view', 'returns.create',
+        'users.view', 'users.manage',
     ];
 
     public function run(): void

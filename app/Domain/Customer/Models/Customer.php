@@ -43,4 +43,16 @@ class Customer extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    public function fullAddress(): ?string
+    {
+        $parts = array_filter([
+            $this->address,
+            $this->commune,
+            $this->district,
+            $this->province,
+        ], fn (?string $part): bool => filled($part));
+
+        return $parts === [] ? null : implode(', ', $parts);
+    }
 }

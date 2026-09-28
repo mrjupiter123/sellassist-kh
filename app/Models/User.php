@@ -6,9 +6,11 @@ namespace App\Models;
 
 use App\Domain\Inventory\Models\StockMovement;
 use App\Domain\Order\Models\Order;
+use App\Domain\OrderActivity\Models\OrderActivity;
 use App\Domain\OrderReturn\Models\OrderReturn;
 use App\Domain\Payment\Models\Payment;
 use App\Domain\Payment\Models\Refund;
+use App\Support\HasPublicUuid;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,7 +21,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable;
+    use HasFactory, HasPublicUuid, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -30,6 +32,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'active',
     ];
 
     /**
@@ -52,6 +55,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'active' => 'boolean',
         ];
     }
 
@@ -78,5 +82,10 @@ class User extends Authenticatable
     public function refunds(): HasMany
     {
         return $this->hasMany(Refund::class, 'created_by');
+    }
+
+    public function orderActivities(): HasMany
+    {
+        return $this->hasMany(OrderActivity::class, 'created_by');
     }
 }

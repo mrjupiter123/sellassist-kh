@@ -11,8 +11,11 @@ use App\Domain\Order\Exceptions\OrderCannotBeAmendedException;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderCalculator;
 use App\Domain\Order\Services\OrderItemResolver;
+use App\Domain\OrderActivity\Enums\OrderActivityType;
+use App\Domain\OrderActivity\Services\RecordOrderActivity;
 use App\Domain\Product\Models\Product;
 use App\Domain\Product\Models\ProductVariant;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 final class UpdateOrder
@@ -20,19 +23,20 @@ final class UpdateOrder
     public function __construct(
         private readonly OrderCalculator $calculator,
         private readonly OrderItemResolver $itemResolver,
+        private readonly RecordOrderActivity $recordActivity,
     ) {}
 
     /** @param array<string, mixed> $data */
-    public function execute(Order $order, array $data): Order
+    public function execute(Order $order, array $data, ?User $changedBy = null): Order
     {
-        return DB::transaction(function () use ($order, $data): Order {
+        return DB::transaction(function () use ($order, $data, $changedBy): Order {
             $lockedOrder = Order::query()->with('payments')->lockForUpdate()->findOrFail($order->id);
 
             if (! $this->canExecute($lockedOrder)) {
                 throw new OrderCannotBeAmendedException('Only draft or new orders can be amended.');
             }
 
-            Customer::query()->findOrFail($data['customer_id']);
+            $customer = Customer::query()->findOrFail($data['customer_id']);
             $resolvedItems = $this->itemResolver->resolve($data['items'], activeOnly: false);
             $totals = $this->calculator->calculate(
                 array_map(fn (array $item): array => [
@@ -57,6 +61,9 @@ final class UpdateOrder
 
             $lockedOrder->update([
                 'customer_id' => $data['customer_id'],
+                'customer_name' => $customer->name,
+                'customer_phone' => $customer->phone,
+                'shipping_address' => $customer->fullAddress(),
                 'source' => $data['source'],
                 'status' => $data['status'],
                 'currency' => $data['currency'],
@@ -87,6 +94,13 @@ final class UpdateOrder
                     'line_total' => $totals['lines'][$index],
                 ]);
             }
+
+            $this->recordActivity->execute(
+                $lockedOrder,
+                OrderActivityType::Amended,
+                'Order details and items amended.',
+                createdBy: $changedBy,
+            );
 
             return $lockedOrder->refresh()->load(['customer', 'items.product', 'items.variant', 'payments']);
         });

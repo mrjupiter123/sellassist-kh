@@ -71,7 +71,7 @@ class OrderController extends Controller
 
     public function update(UpdateOrderRequest $request, Order $order, UpdateOrder $action): RedirectResponse
     {
-        $action->execute($order, $request->validated());
+        $action->execute($order, $request->validated(), $request->user());
 
         return redirect()->route('orders.show', $order)->with('success', 'Order amended successfully.');
     }
@@ -138,6 +138,7 @@ class OrderController extends Controller
             'returns.refunds',
             'returns.creator',
             'creator',
+            'activities.creator',
         ]);
         $paidTotal = (float) $order->payments->sum('amount');
         $refundedTotal = (float) $order->refunds->sum('amount');
@@ -161,5 +162,12 @@ class OrderController extends Controller
             'returnableItems' => $returnableItems,
             'refundablePayments' => $refundablePayments,
         ]);
+    }
+
+    public function receipt(Order $order): View
+    {
+        $order->load(['items', 'creator']);
+
+        return view('orders.receipt', ['order' => $order]);
     }
 }

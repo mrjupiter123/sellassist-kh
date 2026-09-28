@@ -20,6 +20,8 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Never trust prices, totals, permissions, user IDs, order statuses, or stock quantities from the frontend.
 - Order totals must be calculated server-side through `OrderCalculator`.
 - Store order-item product, variant, SKU, and price snapshots.
+- Preserve order customer/contact/address snapshots for historical receipts.
+- Order activities must be recorded inside the same transaction as the operation they describe.
 - Order status changes go through `ChangeOrderStatus` and its centralized transition rules.
 - Confirmation stock deduction and cancellation restoration must remain idempotent.
 - Payment totals cannot exceed the order total unless an explicit overpayment feature is introduced.
@@ -29,6 +31,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Product returns go through `CreateOrderReturn`; cumulative return quantities cannot exceed the original order item quantity.
 - Restocked returns must create stock movements through `AdjustStock`. Damaged/non-sellable returns remain auditable without changing stock.
 - Public routes should use UUIDs rather than sequential database IDs where practical.
+- User lifecycle changes must preserve at least one active administrator; inactive users cannot authenticate.
 
 ## Development practices
 

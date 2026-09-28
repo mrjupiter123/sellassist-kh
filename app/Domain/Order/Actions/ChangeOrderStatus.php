@@ -9,6 +9,8 @@ use App\Domain\Inventory\Enums\StockMovementType;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderStatusTransition;
+use App\Domain\OrderActivity\Enums\OrderActivityType;
+use App\Domain\OrderActivity\Services\RecordOrderActivity;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -17,6 +19,7 @@ final class ChangeOrderStatus
     public function __construct(
         private readonly OrderStatusTransition $transitions,
         private readonly AdjustStock $adjustStock,
+        private readonly RecordOrderActivity $recordActivity,
     ) {}
 
     public function execute(Order $order, OrderStatus $targetStatus, User $changedBy): Order
@@ -57,6 +60,14 @@ final class ChangeOrderStatus
             }
 
             $lockedOrder->update($attributes);
+
+            $this->recordActivity->execute(
+                $lockedOrder,
+                OrderActivityType::StatusChanged,
+                sprintf('Status changed from %s to %s.', $previousStatus->label(), $targetStatus->label()),
+                ['from' => $previousStatus->value, 'to' => $targetStatus->value],
+                $changedBy,
+            );
 
             return $lockedOrder->refresh()->load(['customer', 'items.product', 'items.variant', 'payments']);
         });

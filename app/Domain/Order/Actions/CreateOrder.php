@@ -11,6 +11,8 @@ use App\Domain\Order\Events\OrderCreated;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderCalculator;
 use App\Domain\Order\Services\OrderItemResolver;
+use App\Domain\OrderActivity\Enums\OrderActivityType;
+use App\Domain\OrderActivity\Services\RecordOrderActivity;
 use App\Domain\Payment\Actions\RecordPayment;
 use App\Domain\Product\Models\Product;
 use App\Domain\Product\Models\ProductVariant;
@@ -24,6 +26,7 @@ final class CreateOrder
         private readonly OrderCalculator $calculator,
         private readonly OrderItemResolver $itemResolver,
         private readonly RecordPayment $recordPayment,
+        private readonly RecordOrderActivity $recordActivity,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -46,6 +49,9 @@ final class CreateOrder
             $order = Order::query()->create([
                 'order_number' => 'PENDING-'.Str::uuid(),
                 'customer_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'customer_phone' => $customer->phone,
+                'shipping_address' => $customer->fullAddress(),
                 'source' => $data['source'],
                 'status' => $data['status'] ?? OrderStatus::New->value,
                 'payment_status' => PaymentStatus::Unpaid,
@@ -80,6 +86,14 @@ final class CreateOrder
                     'line_total' => $totals['lines'][$index],
                 ]);
             }
+
+            $this->recordActivity->execute(
+                $order,
+                OrderActivityType::Created,
+                'Order created.',
+                ['order_number' => $order->order_number],
+                $createdBy,
+            );
 
             if (isset($data['payment_amount']) && $this->calculator->toMinorUnits($data['payment_amount']) > 0) {
                 $this->recordPayment->execute($order, [

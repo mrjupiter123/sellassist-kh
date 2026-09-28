@@ -7,6 +7,8 @@ namespace App\Domain\Payment\Actions;
 use App\Domain\Order\Exceptions\InvalidOrderTotalException;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderCalculator;
+use App\Domain\OrderActivity\Enums\OrderActivityType;
+use App\Domain\OrderActivity\Services\RecordOrderActivity;
 use App\Domain\OrderReturn\Models\OrderReturn;
 use App\Domain\Payment\Exceptions\InvalidRefundAmountException;
 use App\Domain\Payment\Models\Payment;
@@ -20,6 +22,7 @@ final class RecordRefund
     public function __construct(
         private readonly OrderCalculator $calculator,
         private readonly PaymentStatusService $paymentStatus,
+        private readonly RecordOrderActivity $recordActivity,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -71,6 +74,14 @@ final class RecordRefund
             ]);
 
             $this->paymentStatus->refresh($lockedOrder);
+
+            $this->recordActivity->execute(
+                $lockedOrder,
+                OrderActivityType::RefundRecorded,
+                sprintf('Refund of %s %s recorded.', $lockedOrder->currency->value, number_format((float) $refund->amount, 2)),
+                ['refund_uuid' => $refund->uuid, 'amount' => $refund->amount, 'currency' => $lockedOrder->currency->value],
+                $createdBy,
+            );
 
             return $refund->load(['payment', 'orderReturn', 'creator']);
         });

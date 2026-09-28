@@ -56,4 +56,26 @@ class ProductManagementTest extends TestCase
         $this->assertSame(7, $variant->stock_quantity);
         $this->assertSame('Black / M', $variant->display_name);
     }
+
+    public function test_variant_can_be_edited_and_deactivated_without_changing_stock(): void
+    {
+        $user = $this->userWithPermissions(['products.update', 'products.view']);
+        $variant = ProductVariant::factory()->create(['stock_quantity' => 8]);
+
+        $this->actingAs($user)->put(route('products.variants.update', [$variant->product, $variant]), [
+            'sku' => 'UPDATED-SKU',
+            'color' => 'Navy',
+            'size' => 'XL',
+            'price' => '14.00',
+            'cost' => '6.00',
+            'low_stock_threshold' => 3,
+            'active' => 0,
+        ])->assertRedirect(route('products.show', $variant->product));
+
+        $variant->refresh();
+        $this->assertFalse($variant->active);
+        $this->assertSame(8, $variant->stock_quantity);
+        $this->assertSame('Navy / XL', $variant->display_name);
+        $this->assertDatabaseCount('stock_movements', 0);
+    }
 }

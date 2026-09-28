@@ -8,6 +8,7 @@ use App\Domain\Customer\Enums\CustomerSource;
 use App\Domain\Customer\Models\Customer;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Enums\PaymentStatus;
+use App\Domain\OrderActivity\Models\OrderActivity;
 use App\Domain\OrderReturn\Models\OrderReturn;
 use App\Domain\Payment\Enums\Currency;
 use App\Domain\Payment\Models\Payment;
@@ -30,6 +31,9 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'customer_id',
+        'customer_name',
+        'customer_phone',
+        'shipping_address',
         'source',
         'status',
         'payment_status',
@@ -89,6 +93,11 @@ class Order extends Model
     public function returns(): HasMany
     {
         return $this->hasMany(OrderReturn::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(OrderActivity::class)->latest();
     }
 
     public function creator(): BelongsTo

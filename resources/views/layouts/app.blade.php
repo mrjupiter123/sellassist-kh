@@ -23,6 +23,7 @@
                     @can('customers.view')<li class="nav-item"><a class="nav-link" href="{{ route('customers.index') }}">Customers</a></li>@endcan
                     @can('products.view')<li class="nav-item"><a class="nav-link" href="{{ route('products.index') }}">Products</a></li>@endcan
                     @can('inventory.view')<li class="nav-item"><a class="nav-link" href="{{ route('inventory.index') }}">Inventory</a></li>@endcan
+                    @can('users.view')<li class="nav-item"><a class="nav-link" href="{{ route('users.index') }}">Users</a></li>@endcan
                 </ul>
                 <span class="navbar-text me-3">{{ auth()->user()->name }}</span>
                 <form method="POST" action="{{ route('logout') }}">

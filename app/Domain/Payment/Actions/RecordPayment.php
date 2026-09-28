@@ -7,6 +7,8 @@ namespace App\Domain\Payment\Actions;
 use App\Domain\Order\Exceptions\InvalidOrderTotalException;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderCalculator;
+use App\Domain\OrderActivity\Enums\OrderActivityType;
+use App\Domain\OrderActivity\Services\RecordOrderActivity;
 use App\Domain\Payment\Exceptions\InvalidPaymentAmountException;
 use App\Domain\Payment\Models\Payment;
 use App\Domain\Payment\Services\PaymentStatusService;
@@ -18,6 +20,7 @@ final class RecordPayment
     public function __construct(
         private readonly OrderCalculator $calculator,
         private readonly PaymentStatusService $paymentStatus,
+        private readonly RecordOrderActivity $recordActivity,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -57,6 +60,14 @@ final class RecordPayment
             ]);
 
             $this->paymentStatus->refresh($lockedOrder);
+
+            $this->recordActivity->execute(
+                $lockedOrder,
+                OrderActivityType::PaymentRecorded,
+                sprintf('Payment of %s %s recorded.', $lockedOrder->currency->value, number_format((float) $payment->amount, 2)),
+                ['payment_uuid' => $payment->uuid, 'amount' => $payment->amount, 'currency' => $lockedOrder->currency->value],
+                $createdBy,
+            );
 
             return $payment->load(['order', 'creator']);
         });

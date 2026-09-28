@@ -9,6 +9,8 @@ use App\Domain\Inventory\Enums\StockMovementType;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderCalculator;
+use App\Domain\OrderActivity\Enums\OrderActivityType;
+use App\Domain\OrderActivity\Services\RecordOrderActivity;
 use App\Domain\OrderReturn\Exceptions\InvalidOrderReturnException;
 use App\Domain\OrderReturn\Models\OrderReturn;
 use App\Domain\OrderReturn\Models\OrderReturnItem;
@@ -24,6 +26,7 @@ final class CreateOrderReturn
         private readonly AdjustStock $adjustStock,
         private readonly OrderCalculator $calculator,
         private readonly RecordRefund $recordRefund,
+        private readonly RecordOrderActivity $recordActivity,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -111,6 +114,14 @@ final class CreateOrderReturn
                     );
                 }
             }
+
+            $this->recordActivity->execute(
+                $lockedOrder,
+                OrderActivityType::ReturnRecorded,
+                "Return {$orderReturn->return_number} recorded.",
+                ['return_uuid' => $orderReturn->uuid, 'return_number' => $orderReturn->return_number],
+                $createdBy,
+            );
 
             if (! empty($data['refund_amount'])) {
                 $subtotal = $this->calculator->toMinorUnits($lockedOrder->subtotal);
