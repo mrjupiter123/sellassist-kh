@@ -5,31 +5,28 @@ declare(strict_types=1);
 namespace App\Domain\Payment\Models;
 
 use App\Domain\Order\Models\Order;
+use App\Domain\OrderReturn\Models\OrderReturn;
 use App\Domain\Payment\Enums\Currency;
 use App\Domain\Payment\Enums\PaymentMethod;
 use App\Models\User;
 use App\Support\HasPublicUuid;
-use Database\Factories\PaymentFactory;
-use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[UseFactory(PaymentFactory::class)]
-class Payment extends Model
+class Refund extends Model
 {
-    use HasFactory;
     use HasPublicUuid;
 
     protected $fillable = [
         'order_id',
+        'payment_id',
+        'order_return_id',
         'amount',
         'currency',
-        'payment_method',
+        'refund_method',
         'reference',
         'notes',
-        'paid_at',
+        'refunded_at',
         'created_by',
     ];
 
@@ -38,8 +35,8 @@ class Payment extends Model
         return [
             'amount' => 'decimal:2',
             'currency' => Currency::class,
-            'payment_method' => PaymentMethod::class,
-            'paid_at' => 'datetime',
+            'refund_method' => PaymentMethod::class,
+            'refunded_at' => 'datetime',
         ];
     }
 
@@ -48,13 +45,18 @@ class Payment extends Model
         return $this->belongsTo(Order::class);
     }
 
+    public function payment(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class);
+    }
+
+    public function orderReturn(): BelongsTo
+    {
+        return $this->belongsTo(OrderReturn::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function refunds(): HasMany
-    {
-        return $this->hasMany(Refund::class);
     }
 }

@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\Payment\Actions;
 
-use App\Domain\Order\Enums\PaymentStatus;
 use App\Domain\Order\Exceptions\InvalidOrderTotalException;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderCalculator;
 use App\Domain\Payment\Exceptions\InvalidPaymentAmountException;
 use App\Domain\Payment\Models\Payment;
+use App\Domain\Payment\Services\PaymentStatusService;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 final class RecordPayment
 {
-    public function __construct(private readonly OrderCalculator $calculator) {}
+    public function __construct(
+        private readonly OrderCalculator $calculator,
+        private readonly PaymentStatusService $paymentStatus,
+    ) {}
 
     /** @param array<string, mixed> $data */
     public function execute(Order $order, array $data, User $createdBy): Payment
@@ -53,12 +56,7 @@ final class RecordPayment
                 'created_by' => $createdBy->id,
             ]);
 
-            $paidTotal = $alreadyPaid + $amount;
-            $lockedOrder->update([
-                'payment_status' => $paidTotal === $orderTotal
-                    ? PaymentStatus::Paid
-                    : PaymentStatus::PartiallyPaid,
-            ]);
+            $this->paymentStatus->refresh($lockedOrder);
 
             return $payment->load(['order', 'creator']);
         });

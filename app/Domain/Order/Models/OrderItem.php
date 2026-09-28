@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Order\Models;
 
+use App\Domain\OrderReturn\Models\OrderReturnItem;
 use App\Domain\Product\Models\Product;
 use App\Domain\Product\Models\ProductVariant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrderItem extends Model
 {
@@ -46,5 +48,10 @@ class OrderItem extends Model
     public function variant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+
+    public function returnItems(): HasMany
+    {
+        return $this->hasMany(OrderReturnItem::class);
     }
 }

@@ -1,6 +1,6 @@
 # SellAssist KH
 
-SellAssist KH is a Laravel order-management application for Cambodian online sellers. Phase 1 provides the dependable operational core: customers, products and variants, stock auditing, orders, payments, permissions, and a daily dashboard. Social integrations and automation are intentionally out of scope.
+SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, permissions, and a daily dashboard. Social integrations and automation are intentionally out of scope.
 
 ## Requirements
 
@@ -60,13 +60,15 @@ These credentials are development-only. Change or remove them before using real 
 
 ## Authentication and authorization
 
-Authentication uses Laravel's session guard. Spatie Laravel Permission supplies the `admin` and `staff` roles. The permission seeder grants every Phase 1 permission to administrators and operational view/create/update permissions to staff. Routes require authentication and the relevant permission; the seeded administrator can access all features.
+Authentication uses Laravel's session guard. Spatie Laravel Permission supplies the `admin` and `staff` roles. The permission seeder grants every operational permission to administrators and appropriate customer, catalog, order, inventory, return, payment, and refund permissions to staff. Routes require authentication and the relevant permission; the seeded administrator can access all features.
 
 ## Architecture
 
 The application is a modular monolith. Domain models and use-case logic live under `app/Domain/<Feature>`. Controllers remain HTTP adapters, Form Requests validate and authorize input, and Blade templates use Bootstrap 5 with small Alpine.js interactions.
 
-Order creation, status changes, stock movements, and payment recording use transactions. `OrderCalculator` owns monetary calculations. `AdjustStock` owns all inventory mutations and audit records. `ChangeOrderStatus` owns transition validation, timestamps, and idempotent stock deduction/restoration.
+Order creation, amendments, status changes, stock movements, returns, payments, and refunds use transactions. `OrderCalculator` owns monetary calculations. `AdjustStock` owns all inventory mutations and audit records. `ChangeOrderStatus` owns transition validation, timestamps, and idempotent confirmation/cancellation handling.
+
+Only `draft` and `new` orders may be amended. Catalog prices are reloaded and totals recalculated server-side, and a paid order cannot be reduced below its recorded payments. Only completed orders accept product returns. Return quantities are capped cumulatively against original order items; sellable items can be restocked through audited return movements. Refunds are immutable records tied to their original payment, cannot exceed its unrefunded balance, and never delete payment history.
 
 ## Tests and formatting
 
@@ -85,7 +87,7 @@ php artisan migrate:fresh --seed
 
 ## Queues and scheduler
 
-No Phase 1 workflow depends on an asynchronous job or scheduled task. The database queue tables remain available for later integrations. If queued work is added, run:
+No current workflow depends on an asynchronous job or scheduled task. The database queue tables remain available for later integrations. If queued work is added, run:
 
 ```bash
 php artisan queue:work --tries=3

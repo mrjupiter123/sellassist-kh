@@ -11,6 +11,8 @@ use App\Domain\Inventory\Enums\StockMovementType;
 use App\Domain\Order\Actions\ChangeOrderStatus;
 use App\Domain\Order\Actions\CreateOrder;
 use App\Domain\Order\Enums\OrderStatus;
+use App\Domain\Order\Models\Order;
+use App\Domain\OrderReturn\Actions\CreateOrderReturn;
 use App\Domain\Payment\Actions\RecordPayment;
 use App\Domain\Payment\Enums\PaymentMethod;
 use App\Domain\Product\Models\Product;
@@ -26,6 +28,7 @@ class DemoDataSeeder extends Seeder
         CreateOrder $createOrder,
         ChangeOrderStatus $changeOrderStatus,
         RecordPayment $recordPayment,
+        CreateOrderReturn $createOrderReturn,
     ): void {
         $admin = User::factory()->create([
             'name' => 'Development Admin',
@@ -103,6 +106,28 @@ class DemoDataSeeder extends Seeder
                     'payment_method' => PaymentMethod::Cash->value,
                 ], $admin);
             }
+        }
+
+        $completedOrder = Order::query()
+            ->with(['items', 'payments'])
+            ->where('status', OrderStatus::Completed->value)
+            ->whereHas('payments')
+            ->first();
+
+        if ($completedOrder !== null) {
+            $createOrderReturn->execute($completedOrder, [
+                'reason' => 'Development sample return',
+                'items' => [[
+                    'order_item_id' => $completedOrder->items->firstOrFail()->id,
+                    'quantity' => 1,
+                    'restock' => true,
+                    'reason' => 'Customer changed their mind',
+                ]],
+                'payment_id' => $completedOrder->payments->firstOrFail()->id,
+                'refund_amount' => '1.00',
+                'refund_method' => PaymentMethod::Cash->value,
+                'refund_reference' => 'SEED-RETURN',
+            ], $admin);
         }
     }
 }

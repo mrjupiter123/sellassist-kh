@@ -23,6 +23,11 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Order status changes go through `ChangeOrderStatus` and its centralized transition rules.
 - Confirmation stock deduction and cancellation restoration must remain idempotent.
 - Payment totals cannot exceed the order total unless an explicit overpayment feature is introduced.
+- Only draft and new orders may be amended. Amendments must re-resolve catalog prices and recalculate totals server-side.
+- Never delete or mutate historical payments to represent a refund. Refunds go through `RecordRefund` and remain linked to the original payment.
+- Refund totals cannot exceed the unrefunded amount of the selected payment.
+- Product returns go through `CreateOrderReturn`; cumulative return quantities cannot exceed the original order item quantity.
+- Restocked returns must create stock movements through `AdjustStock`. Damaged/non-sellable returns remain auditable without changing stock.
 - Public routes should use UUIDs rather than sequential database IDs where practical.
 
 ## Development practices
@@ -39,5 +44,5 @@ This is SellMate KH, branded in the application as SellAssist KH.
 
 ## Scope
 
-Phase 1 covers local authentication, roles and permissions, customers, products and variants, inventory movements, orders, payments, and the operational dashboard. Do not add social-network APIs, AI parsing, payment gateways, delivery integrations, multi-tenancy, subscriptions, WebSockets, or microservices in this phase.
+The implemented core covers local authentication, roles and permissions, customers, products and variants, inventory movements, orders, controlled amendments, payments, returns, refunds, and the operational dashboard. Do not add social-network APIs, AI parsing, payment gateways, delivery integrations, multi-tenancy, subscriptions, WebSockets, or microservices unless a later phase explicitly requests them.
 

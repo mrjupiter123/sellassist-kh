@@ -17,7 +17,9 @@ class RolePermissionSeeder extends Seeder
         'products.view', 'products.create', 'products.update', 'products.delete',
         'orders.view', 'orders.create', 'orders.update', 'orders.cancel',
         'payments.view', 'payments.create',
+        'payments.refund',
         'inventory.view', 'inventory.adjust',
+        'returns.view', 'returns.create',
     ];
 
     public function run(): void
@@ -39,7 +41,9 @@ class RolePermissionSeeder extends Seeder
             'products.view', 'products.create', 'products.update',
             'orders.view', 'orders.create', 'orders.update', 'orders.cancel',
             'payments.view', 'payments.create',
+            'payments.refund',
             'inventory.view', 'inventory.adjust',
+            'returns.view', 'returns.create',
         ]);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

@@ -6,7 +6,9 @@ namespace App\Models;
 
 use App\Domain\Inventory\Models\StockMovement;
 use App\Domain\Order\Models\Order;
+use App\Domain\OrderReturn\Models\OrderReturn;
 use App\Domain\Payment\Models\Payment;
+use App\Domain\Payment\Models\Refund;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -66,5 +68,15 @@ class User extends Authenticatable
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class, 'created_by');
+    }
+
+    public function orderReturns(): HasMany
+    {
+        return $this->hasMany(OrderReturn::class, 'created_by');
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class, 'created_by');
     }
 }

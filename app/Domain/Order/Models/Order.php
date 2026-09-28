@@ -8,8 +8,10 @@ use App\Domain\Customer\Enums\CustomerSource;
 use App\Domain\Customer\Models\Customer;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Enums\PaymentStatus;
+use App\Domain\OrderReturn\Models\OrderReturn;
 use App\Domain\Payment\Enums\Currency;
 use App\Domain\Payment\Models\Payment;
+use App\Domain\Payment\Models\Refund;
 use App\Models\User;
 use App\Support\HasPublicUuid;
 use Database\Factories\OrderFactory;
@@ -77,6 +79,16 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
+    public function returns(): HasMany
+    {
+        return $this->hasMany(OrderReturn::class);
     }
 
     public function creator(): BelongsTo

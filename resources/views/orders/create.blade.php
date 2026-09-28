@@ -1,16 +1,17 @@
 @extends('layouts.app')
-@section('title', 'New order · SellAssist KH')
+@php($editing = $order !== null)
+@section('title', ($editing ? 'Amend order' : 'New order').' · SellAssist KH')
 @section('content')
-<div class="mb-4"><a href="{{ route('orders.index') }}">← Orders</a><h1 class="h3 mt-2 mb-1">New order</h1><p class="text-secondary mb-0">Prices and totals are verified again by the server when you save.</p></div>
-<form method="POST" action="{{ route('orders.store') }}" x-data="orderForm">@csrf
+<div class="mb-4"><a href="{{ $editing ? route('orders.show', $order) : route('orders.index') }}">← {{ $editing ? $order->order_number : 'Orders' }}</a><h1 class="h3 mt-2 mb-1">{{ $editing ? 'Amend order' : 'New order' }}</h1><p class="text-secondary mb-0">Prices and totals are verified again by the server when you save.</p></div>
+<form method="POST" action="{{ $editing ? route('orders.update', $order) : route('orders.store') }}" x-data="orderForm">@csrf @if($editing) @method('PUT') @endif
 <div class="row g-4">
     <div class="col-xl-8">
         <div class="card mb-4"><div class="card-body"><div class="row g-3">
-            <div class="col-md-6"><label class="form-label">Customer *</label><select class="form-select" name="customer_id" required><option value="">Choose a customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id') === (string) $customer->id)>{{ $customer->name }}{{ $customer->phone ? ' · '.$customer->phone : '' }}</option>@endforeach</select><div class="form-text"><a href="{{ route('customers.create') }}">Add a new customer</a> if needed.</div></div>
-            <div class="col-md-3"><label class="form-label">Source *</label><select class="form-select" name="source" required>@foreach($sources as $source)<option value="{{ $source->value }}" @selected(old('source', 'manual') === $source->value)>{{ $source->label() }}</option>@endforeach</select></div>
+            <div class="col-md-6"><label class="form-label">Customer *</label><select class="form-select" name="customer_id" required><option value="">Choose a customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id', $order?->customer_id) === (string) $customer->id)>{{ $customer->name }}{{ $customer->phone ? ' · '.$customer->phone : '' }}</option>@endforeach</select><div class="form-text"><a href="{{ route('customers.create') }}">Add a new customer</a> if needed.</div></div>
+            <div class="col-md-3"><label class="form-label">Source *</label><select class="form-select" name="source" required>@foreach($sources as $source)<option value="{{ $source->value }}" @selected(old('source', $order?->source->value ?? 'manual') === $source->value)>{{ $source->label() }}</option>@endforeach</select></div>
             <div class="col-md-3"><label class="form-label">Currency *</label><select class="form-select" name="currency" x-model="currency" required>@foreach($currencies as $currency)<option value="{{ $currency->value }}">{{ $currency->value }}</option>@endforeach</select></div>
-            <div class="col-md-4"><label class="form-label">Initial status *</label><select class="form-select" name="status"><option value="new" @selected(old('status', 'new') === 'new')>New</option><option value="draft" @selected(old('status') === 'draft')>Draft</option></select></div>
-            <div class="col-md-8"><label class="form-label">Notes</label><input class="form-control" name="notes" value="{{ old('notes') }}" placeholder="Delivery instructions or customer request"></div>
+            <div class="col-md-4"><label class="form-label">Status *</label><select class="form-select" name="status"><option value="new" @selected(old('status', $order?->status->value ?? 'new') === 'new')>New</option><option value="draft" @selected(old('status', $order?->status->value) === 'draft')>Draft</option></select></div>
+            <div class="col-md-8"><label class="form-label">Notes</label><input class="form-control" name="notes" value="{{ old('notes', $order?->notes) }}" placeholder="Delivery instructions or customer request"></div>
         </div></div></div>
 
         <div class="card"><div class="card-header bg-white d-flex justify-content-between align-items-center"><strong>Order items</strong><button class="btn btn-sm btn-outline-primary" type="button" @click="addItem">Add product</button></div>
@@ -35,18 +36,18 @@
             <div class="d-flex justify-content-between border-top pt-3"><span>Subtotal</span><strong x-text="money(subtotal)"></strong></div>
             <div class="d-flex justify-content-between fs-5 mt-2"><span>Total estimate</span><strong x-text="money(total)"></strong></div>
         </div></div>
-        @can('payments.create')<div class="card mb-4"><div class="card-body"><h2 class="h5">Optional first payment</h2><div class="mb-3"><label class="form-label">Amount</label><input class="form-control" type="number" step="0.01" min="0" name="payment_amount" value="{{ old('payment_amount') }}"></div><div class="mb-3"><label class="form-label">Method</label><select class="form-select" name="payment_method"><option value="">Choose method</option>@foreach($paymentMethods as $method)<option value="{{ $method->value }}" @selected(old('payment_method') === $method->value)>{{ $method->label() }}</option>@endforeach</select></div><div><label class="form-label">Reference</label><input class="form-control" name="payment_reference" value="{{ old('payment_reference') }}"></div></div></div>@endcan
-        <button class="btn btn-primary btn-lg w-100">Create order</button>
+        @unless($editing) @can('payments.create')<div class="card mb-4"><div class="card-body"><h2 class="h5">Optional first payment</h2><div class="mb-3"><label class="form-label">Amount</label><input class="form-control" type="number" step="0.01" min="0" name="payment_amount" value="{{ old('payment_amount') }}"></div><div class="mb-3"><label class="form-label">Method</label><select class="form-select" name="payment_method"><option value="">Choose method</option>@foreach($paymentMethods as $method)<option value="{{ $method->value }}" @selected(old('payment_method') === $method->value)>{{ $method->label() }}</option>@endforeach</select></div><div><label class="form-label">Reference</label><input class="form-control" name="payment_reference" value="{{ old('payment_reference') }}"></div></div></div>@endcan @endunless
+        <button class="btn btn-primary btn-lg w-100">{{ $editing ? 'Save amendments' : 'Create order' }}</button>
     </div>
 </div>
 </form>
 <script>
 document.addEventListener('alpine:init', () => Alpine.data('orderForm', () => ({
     catalog: @js($catalog),
-    items: @js(old('items', [['product_id' => '', 'product_variant_id' => '', 'quantity' => 1, 'discount' => '0']])).map((item, index) => ({ ...item, key: `${Date.now()}-${index}` })),
-    currency: @js(old('currency', 'USD')),
-    orderDiscount: @js(old('discount', '0')),
-    deliveryFee: @js(old('delivery_fee', '0')),
+    items: @js(old('items', $initialItems)).map((item, index) => ({ ...item, key: `${Date.now()}-${index}` })),
+    currency: @js(old('currency', $order?->currency->value ?? 'USD')),
+    orderDiscount: @js(old('discount', $order?->discount ?? '0')),
+    deliveryFee: @js(old('delivery_fee', $order?->delivery_fee ?? '0')),
     addItem() { this.items.push({ key: `${Date.now()}-${Math.random()}`, product_id: '', product_variant_id: '', quantity: 1, discount: '0' }); },
     removeItem(index) { if (this.items.length > 1) this.items.splice(index, 1); },
     selectedProduct(item) { return this.catalog.find(product => Number(product.id) === Number(item.product_id)); },

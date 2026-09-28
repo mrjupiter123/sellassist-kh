@@ -7,10 +7,12 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderReturnController;
 use App\Http\Controllers\OrderStatusController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductVariantController;
+use App\Http\Controllers\RefundController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -48,7 +50,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/orders', [OrderController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');
     Route::get('/orders/create', [OrderController::class, 'create'])->middleware('permission:orders.create')->name('orders.create');
     Route::post('/orders', [OrderController::class, 'store'])->middleware('permission:orders.create')->name('orders.store');
+    Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->middleware('permission:orders.update')->name('orders.edit');
+    Route::put('/orders/{order}', [OrderController::class, 'update'])->middleware('permission:orders.update')->name('orders.update');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->middleware('permission:orders.view')->name('orders.show');
     Route::patch('/orders/{order}/status', [OrderStatusController::class, 'update'])->name('orders.status.update');
     Route::post('/orders/{order}/payments', [PaymentController::class, 'store'])->middleware('permission:payments.create')->name('orders.payments.store');
+    Route::post('/orders/{order}/returns', [OrderReturnController::class, 'store'])->middleware('permission:returns.create')->name('orders.returns.store');
+    Route::post('/orders/{order}/refunds', [RefundController::class, 'store'])->middleware('permission:payments.refund')->name('orders.refunds.store');
 });
