@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 
 use App\Domain\Customer\Enums\CustomerSource;
 use App\Domain\Customer\Models\Customer;
+use App\Domain\Delivery\Enums\ShipmentStatus;
+use App\Domain\Delivery\Models\DeliveryProvider;
 use App\Domain\Order\Actions\CreateOrder;
 use App\Domain\Order\Actions\UpdateOrder;
 use App\Domain\Order\Enums\OrderStatus;
@@ -139,6 +141,8 @@ class OrderController extends Controller
             'returns.creator',
             'creator',
             'activities.creator',
+            'shipments.provider',
+            'shipments.remittances',
         ]);
         $paidTotal = (float) $order->payments->sum('amount');
         $refundedTotal = (float) $order->refunds->sum('amount');
@@ -161,6 +165,8 @@ class OrderController extends Controller
             'netPaid' => $paidTotal - $refundedTotal,
             'returnableItems' => $returnableItems,
             'refundablePayments' => $refundablePayments,
+            'deliveryProviders' => DeliveryProvider::query()->where('active', true)->orderBy('name')->get(),
+            'hasActiveShipment' => $order->shipments->contains(fn ($shipment): bool => ! in_array($shipment->status, [ShipmentStatus::Delivered, ShipmentStatus::Returned, ShipmentStatus::Cancelled], true)),
         ]);
     }
 

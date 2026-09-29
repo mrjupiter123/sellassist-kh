@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Delivery\Enums\CodStatus;
+use App\Domain\Delivery\Enums\ShipmentStatus;
+use App\Domain\Delivery\Models\Shipment;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Enums\PaymentStatus;
 use App\Domain\Order\Models\Order;
@@ -46,6 +49,22 @@ class DashboardController extends Controller
             $amount = $openOrders
                 ->where('currency', $currency)
                 ->sum(fn (Order $order): float => max(0, (float) $order->total - (float) ($order->payments_sum_amount ?? 0)));
+
+            return [$currency->value => $amount];
+        });
+
+        $metrics['active_shipments'] = Shipment::query()
+            ->whereNotIn('status', [ShipmentStatus::Delivered->value, ShipmentStatus::Returned->value, ShipmentStatus::Cancelled->value])
+            ->count();
+        $openCod = Shipment::query()
+            ->select(['id', 'cod_amount', 'currency'])
+            ->whereIn('cod_status', [CodStatus::Collected->value, CodStatus::PartiallyRemitted->value])
+            ->withSum('remittances', 'amount')
+            ->get();
+        $metrics['cod_outstanding'] = collect(Currency::cases())->mapWithKeys(function (Currency $currency) use ($openCod): array {
+            $amount = $openCod
+                ->where('currency', $currency)
+                ->sum(fn (Shipment $shipment): float => max(0, (float) $shipment->cod_amount - (float) ($shipment->remittances_sum_amount ?? 0)));
 
             return [$currency->value => $amount];
         });

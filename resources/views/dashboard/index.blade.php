@@ -17,6 +17,8 @@
     @endforeach
     <div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Today's completed sales</div><div class="metric-value">USD {{ number_format($metrics['sales_today']['USD'], 2) }}</div><div class="text-secondary">KHR {{ number_format($metrics['sales_today']['KHR'], 2) }}</div></div></div></div>
     <div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Outstanding order balance</div><div class="metric-value text-danger">USD {{ number_format($metrics['unpaid_amount']['USD'], 2) }}</div><div class="text-secondary">KHR {{ number_format($metrics['unpaid_amount']['KHR'], 2) }}</div></div></div></div>
+    @can('delivery.view')<div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Active shipments</div><div class="metric-value">{{ number_format($metrics['active_shipments']) }}</div><a href="{{ route('delivery.shipments.index') }}">View delivery queue</a></div></div></div>@endcan
+    @can('delivery.cod.reconcile')<div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Collected COD awaiting remittance</div><div class="metric-value text-danger">USD {{ number_format($metrics['cod_outstanding']['USD'], 2) }}</div><div class="text-secondary">KHR {{ number_format($metrics['cod_outstanding']['KHR'], 2) }}</div></div></div></div>@endcan
 </div>
 
 <div class="row g-4">

@@ -6,6 +6,10 @@ namespace Database\Seeders;
 
 use App\Domain\Customer\Enums\CustomerSource;
 use App\Domain\Customer\Models\Customer;
+use App\Domain\Delivery\Actions\ChangeShipmentStatus;
+use App\Domain\Delivery\Actions\CreateShipment;
+use App\Domain\Delivery\Enums\ShipmentStatus;
+use App\Domain\Delivery\Models\DeliveryProvider;
 use App\Domain\Inventory\Actions\AdjustStock;
 use App\Domain\Inventory\Enums\StockMovementType;
 use App\Domain\Order\Actions\ChangeOrderStatus;
@@ -29,6 +33,8 @@ class DemoDataSeeder extends Seeder
         ChangeOrderStatus $changeOrderStatus,
         RecordPayment $recordPayment,
         CreateOrderReturn $createOrderReturn,
+        CreateShipment $createShipment,
+        ChangeShipmentStatus $changeShipmentStatus,
     ): void {
         $admin = User::factory()->create([
             'name' => 'Development Admin',
@@ -36,6 +42,12 @@ class DemoDataSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
         $admin->assignRole('admin');
+
+        $providers = collect([
+            DeliveryProvider::query()->create(['name' => 'Phnom Penh Express', 'code' => 'PPX', 'contact_phone' => '012 000 001', 'active' => true]),
+            DeliveryProvider::query()->create(['name' => 'Cambodia Parcel', 'code' => 'CP', 'contact_phone' => '012 000 002', 'active' => true]),
+            DeliveryProvider::query()->create(['name' => 'L192 Delivery', 'code' => 'L192', 'adapter' => 'l192', 'integration_enabled' => false, 'active' => true]),
+        ]);
 
         $customers = Customer::factory()->count(10)->create();
         $products = Product::factory()->count(15)->create();
@@ -105,6 +117,20 @@ class DemoDataSeeder extends Seeder
                     'currency' => 'USD',
                     'payment_method' => PaymentMethod::Cash->value,
                 ], $admin);
+            }
+
+            if (in_array($order->refresh()->status, [OrderStatus::Confirmed, OrderStatus::Packed], true) && $number % 3 === 0) {
+                $shipment = $createShipment->execute($order, [
+                    'delivery_provider_id' => $providers->random()->id,
+                    'tracking_number' => 'SEED-TRACK-'.$number,
+                    'notes' => 'Development sample shipment',
+                ], $admin);
+                $shipment = $changeShipmentStatus->execute($shipment, ShipmentStatus::ReadyForPickup, $admin);
+
+                if ($order->refresh()->status === OrderStatus::Packed) {
+                    $shipment = $changeShipmentStatus->execute($shipment, ShipmentStatus::PickedUp, $admin);
+                    $changeShipmentStatus->execute($shipment, ShipmentStatus::InTransit, $admin);
+                }
             }
         }
 

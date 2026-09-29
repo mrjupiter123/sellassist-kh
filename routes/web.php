@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\CodRemittanceController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeliveryProviderController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderReturnController;
@@ -13,6 +15,9 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\RefundController;
+use App\Http\Controllers\ShipmentController;
+use App\Http\Controllers\ShipmentIntegrationController;
+use App\Http\Controllers\ShipmentStatusController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +67,21 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::post('/orders/{order}/payments', [PaymentController::class, 'store'])->middleware('permission:payments.create')->name('orders.payments.store');
     Route::post('/orders/{order}/returns', [OrderReturnController::class, 'store'])->middleware('permission:returns.create')->name('orders.returns.store');
     Route::post('/orders/{order}/refunds', [RefundController::class, 'store'])->middleware('permission:payments.refund')->name('orders.refunds.store');
+    Route::post('/orders/{order}/shipments', [ShipmentController::class, 'store'])->middleware('permission:delivery.create')->name('orders.shipments.store');
+
+    Route::get('/delivery/shipments', [ShipmentController::class, 'index'])->middleware('permission:delivery.view')->name('delivery.shipments.index');
+    Route::get('/delivery/shipments/{shipment}', [ShipmentController::class, 'show'])->middleware('permission:delivery.view')->name('delivery.shipments.show');
+    Route::get('/delivery/shipments/{shipment}/label', [ShipmentController::class, 'label'])->middleware('permission:delivery.view')->name('delivery.shipments.label');
+    Route::patch('/delivery/shipments/{shipment}/status', [ShipmentStatusController::class, 'update'])->middleware('permission:delivery.update')->name('delivery.shipments.status.update');
+    Route::post('/delivery/shipments/{shipment}/submit', [ShipmentIntegrationController::class, 'submit'])->middleware('permission:delivery.update')->name('delivery.shipments.integration.submit');
+    Route::post('/delivery/shipments/{shipment}/sync', [ShipmentIntegrationController::class, 'sync'])->middleware('permission:delivery.update')->name('delivery.shipments.integration.sync');
+    Route::post('/delivery/shipments/{shipment}/cod-remittances', [CodRemittanceController::class, 'store'])->middleware('permission:delivery.cod.reconcile')->name('delivery.shipments.cod-remittances.store');
+
+    Route::get('/delivery/providers', [DeliveryProviderController::class, 'index'])->middleware('permission:delivery.providers.manage')->name('delivery.providers.index');
+    Route::get('/delivery/providers/create', [DeliveryProviderController::class, 'create'])->middleware('permission:delivery.providers.manage')->name('delivery.providers.create');
+    Route::post('/delivery/providers', [DeliveryProviderController::class, 'store'])->middleware('permission:delivery.providers.manage')->name('delivery.providers.store');
+    Route::get('/delivery/providers/{provider}/edit', [DeliveryProviderController::class, 'edit'])->middleware('permission:delivery.providers.manage')->name('delivery.providers.edit');
+    Route::put('/delivery/providers/{provider}', [DeliveryProviderController::class, 'update'])->middleware('permission:delivery.providers.manage')->name('delivery.providers.update');
 
     Route::get('/users', [UserController::class, 'index'])->middleware('permission:users.view')->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->middleware('permission:users.manage')->name('users.create');

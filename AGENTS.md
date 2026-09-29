@@ -32,6 +32,13 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Restocked returns must create stock movements through `AdjustStock`. Damaged/non-sellable returns remain auditable without changing stock.
 - Public routes should use UUIDs rather than sequential database IDs where practical.
 - User lifecycle changes must preserve at least one active administrator; inactive users cannot authenticate.
+- Shipment status changes go through `ChangeShipmentStatus`; never update shipment or order delivery states directly.
+- Shipment COD is calculated from the server-side outstanding order balance. COD reconciliation goes through `RecordCodRemittance` and creates a linked payment.
+- Courier pickup, delivery, and return synchronize order status only through `ChangeOrderStatus`.
+- External delivery calls must go through a provider adapter and queued job; never call courier APIs from controllers.
+- Provider status updates must pass through `ApplyProviderShipmentStatus` and the existing shipment transition action.
+- Webhooks must verify signatures before persistence, use stable idempotency keys, and store sensitive payloads encrypted.
+- Keep provider credentials in environment configuration; never store or log tokens.
 
 ## Development practices
 
@@ -47,5 +54,5 @@ This is SellMate KH, branded in the application as SellAssist KH.
 
 ## Scope
 
-The implemented core covers local authentication, roles and permissions, customers, products and variants, inventory movements, orders, controlled amendments, payments, returns, refunds, and the operational dashboard. Do not add social-network APIs, AI parsing, payment gateways, delivery integrations, multi-tenancy, subscriptions, WebSockets, or microservices unless a later phase explicitly requests them.
+The implemented core covers local authentication, roles and permissions, customers, products and variants, inventory movements, orders, controlled amendments, payments, returns, refunds, delivery workflow, COD reconciliation, an L192 delivery adapter, secure delivery webhooks, and the operational dashboard. Do not add social-network APIs, AI parsing, payment gateways, additional external courier APIs, multi-tenancy, subscriptions, WebSockets, or microservices unless a later phase explicitly requests them.
 

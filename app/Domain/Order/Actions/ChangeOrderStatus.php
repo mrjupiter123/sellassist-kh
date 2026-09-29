@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Order\Actions;
 
+use App\Domain\Delivery\Enums\ShipmentStatus;
 use App\Domain\Inventory\Actions\AdjustStock;
 use App\Domain\Inventory\Enums\StockMovementType;
 use App\Domain\Order\Enums\OrderStatus;
+use App\Domain\Order\Exceptions\OrderHasActiveShipmentException;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderStatusTransition;
 use App\Domain\OrderActivity\Enums\OrderActivityType;
@@ -22,9 +24,9 @@ final class ChangeOrderStatus
         private readonly RecordOrderActivity $recordActivity,
     ) {}
 
-    public function execute(Order $order, OrderStatus $targetStatus, User $changedBy): Order
+    public function execute(Order $order, OrderStatus $targetStatus, ?User $changedBy, bool $fromShipment = false): Order
     {
-        return DB::transaction(function () use ($order, $targetStatus, $changedBy): Order {
+        return DB::transaction(function () use ($order, $targetStatus, $changedBy, $fromShipment): Order {
             $lockedOrder = Order::query()
                 ->with(['items.product', 'items.variant'])
                 ->lockForUpdate()
@@ -36,6 +38,12 @@ final class ChangeOrderStatus
 
             $previousStatus = $lockedOrder->status;
             $this->transitions->assertCanTransition($previousStatus, $targetStatus);
+
+            if ($targetStatus === OrderStatus::Cancelled && ! $fromShipment && $lockedOrder->shipments()
+                ->whereNotIn('status', [ShipmentStatus::Delivered->value, ShipmentStatus::Returned->value, ShipmentStatus::Cancelled->value])
+                ->exists()) {
+                throw new OrderHasActiveShipmentException('Cancel the pending shipment, or record a picked-up shipment as returned, before cancelling this order.');
+            }
 
             if ($targetStatus === OrderStatus::Confirmed) {
                 $this->moveOrderStock($lockedOrder, $changedBy, -1, StockMovementType::Order, 'Stock deducted on order confirmation');
@@ -75,7 +83,7 @@ final class ChangeOrderStatus
 
     private function moveOrderStock(
         Order $order,
-        User $user,
+        ?User $user,
         int $direction,
         StockMovementType $type,
         string $notes,

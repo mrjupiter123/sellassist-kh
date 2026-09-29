@@ -1,6 +1,6 @@
 # SellAssist KH
 
-SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, permissions, and a daily dashboard. Social integrations and automation are intentionally out of scope.
+SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, delivery workflow, COD reconciliation, permissions, and a daily dashboard. Social integrations and automation are intentionally out of scope.
 
 ## Requirements
 
@@ -60,7 +60,7 @@ These credentials are development-only. Change or remove them before using real 
 
 ## Authentication and authorization
 
-Authentication uses Laravel's session guard. Spatie Laravel Permission supplies the `admin` and `staff` roles. The permission seeder grants every operational permission to administrators and appropriate customer, catalog, order, inventory, return, payment, and refund permissions to staff. Routes require authentication and the relevant permission; the seeded administrator can access all features.
+Authentication uses Laravel's session guard. Spatie Laravel Permission supplies the `admin` and `staff` roles. The permission seeder grants every operational permission to administrators and appropriate customer, catalog, order, inventory, return, payment, refund, and delivery permissions to staff. Provider maintenance and COD reconciliation remain administrator permissions. Routes require authentication and the relevant permission; the seeded administrator can access all features.
 
 Administrators can create, edit, activate, and deactivate staff. Inactive users cannot sign in, self-deactivation is blocked, and the final active administrator cannot be demoted or deactivated.
 
@@ -73,6 +73,10 @@ Order creation, amendments, status changes, stock movements, returns, payments, 
 Only `draft` and `new` orders may be amended. Catalog prices are reloaded and totals recalculated server-side, and a paid order cannot be reduced below its recorded payments. Only completed orders accept product returns. Return quantities are capped cumulatively against original order items; sellable items can be restocked through audited return movements. Refunds are immutable records tied to their original payment, cannot exceed its unrefunded balance, and never delete payment history.
 
 Order activities are written inside the same transactions as creation, amendments, status changes, payments, returns, and refunds. Customer contact and address data is snapshotted on each order so historical receipts remain stable. Variant maintenance cannot alter stock; all stock changes continue through the inventory domain.
+
+Delivery providers and shipments live under the `Delivery` domain. Shipment transitions are centralized and audited. Courier pickup moves a packed order to shipped, delivery moves it to completed, and a courier return cancels the shipped order through the existing order action so stock restoration stays idempotent. COD is calculated from the server-side outstanding balance, kept synchronized before delivery, and remittances create linked COD payment records. Printable labels use order snapshots.
+
+The optional L192 adapter creates and tracks USD delivery packages through queued HTTP calls. Provider responses and webhook payloads are encrypted at rest; inbound events require HMAC verification and idempotency. See [Delivery provider integrations](docs/DELIVERY_INTEGRATIONS.md) for setup, supported operations, status mappings, and security constraints.
 
 ## Tests and formatting
 
@@ -91,13 +95,13 @@ php artisan migrate:fresh --seed
 
 ## Queues and scheduler
 
-No current workflow depends on an asynchronous job or scheduled task. The database queue tables remain available for later integrations. If queued work is added, run:
+Delivery provider submissions, tracking synchronization, and webhook processing use the database queue. Run:
 
 ```bash
-php artisan queue:work --tries=3
+php artisan queue:work --queue=integrations,default --tries=3 --timeout=60
 ```
 
-No cron-based scheduler entry is currently required.
+No Laravel scheduler entry is currently required. On cPanel without a persistent worker, invoke `queue:work --queue=integrations,default --stop-when-empty` every minute through cron.
 
 ## Stabilization runbooks
 

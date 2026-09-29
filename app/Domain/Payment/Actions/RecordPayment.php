@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Payment\Actions;
 
+use App\Domain\Delivery\Services\ShipmentCodService;
 use App\Domain\Order\Exceptions\InvalidOrderTotalException;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderCalculator;
@@ -21,13 +22,18 @@ final class RecordPayment
         private readonly OrderCalculator $calculator,
         private readonly PaymentStatusService $paymentStatus,
         private readonly RecordOrderActivity $recordActivity,
+        private readonly ShipmentCodService $shipmentCod,
     ) {}
 
     /** @param array<string, mixed> $data */
-    public function execute(Order $order, array $data, User $createdBy): Payment
+    public function execute(Order $order, array $data, User $createdBy, bool $fromCodRemittance = false): Payment
     {
-        return DB::transaction(function () use ($order, $data, $createdBy): Payment {
+        return DB::transaction(function () use ($order, $data, $createdBy, $fromCodRemittance): Payment {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
+
+            if (! $fromCodRemittance && $this->shipmentCod->hasCollectedCod($lockedOrder)) {
+                throw new InvalidPaymentAmountException('Reconcile the delivered shipment through its COD remittance workflow.');
+            }
 
             if ((string) $lockedOrder->currency->value !== (string) $data['currency']) {
                 throw new InvalidPaymentAmountException('Payment currency must match the order currency.');
@@ -60,6 +66,7 @@ final class RecordPayment
             ]);
 
             $this->paymentStatus->refresh($lockedOrder);
+            $this->shipmentCod->syncOpenShipment($lockedOrder);
 
             $this->recordActivity->execute(
                 $lockedOrder,

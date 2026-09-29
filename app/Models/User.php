@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Domain\Delivery\Models\CodRemittance;
+use App\Domain\Delivery\Models\Shipment;
+use App\Domain\Delivery\Models\ShipmentStatusHistory;
 use App\Domain\Inventory\Models\StockMovement;
 use App\Domain\Order\Models\Order;
 use App\Domain\OrderActivity\Models\OrderActivity;
@@ -87,5 +90,20 @@ class User extends Authenticatable
     public function orderActivities(): HasMany
     {
         return $this->hasMany(OrderActivity::class, 'created_by');
+    }
+
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(Shipment::class, 'created_by');
+    }
+
+    public function shipmentStatusHistories(): HasMany
+    {
+        return $this->hasMany(ShipmentStatusHistory::class, 'created_by');
+    }
+
+    public function codRemittances(): HasMany
+    {
+        return $this->hasMany(CodRemittance::class, 'created_by');
     }
 }

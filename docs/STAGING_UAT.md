@@ -23,6 +23,8 @@ Test a narrow phone and a tablet in portrait and landscape. Have a real seller c
 - complete a return/refund and review the activity timeline;
 - find a low-stock item and adjust stock;
 - as an administrator, create and deactivate a staff account.
+- create a shipment, print its Khmer/English label, progress pickup through delivery, and reconcile partial/full COD;
+- fail and retry a delivery, then verify a returned shipment cancels the order and restores stock once;
 
 Record device/browser, task completion, confusing labels, layout overflow, Khmer rendering, address format, currency expectations, and receipt printer/paper size. Acceptance requires no blocked task, no negative stock, correct totals, and no horizontal scrolling in normal forms.
 

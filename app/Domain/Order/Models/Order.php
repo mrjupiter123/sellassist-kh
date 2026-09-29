@@ -6,6 +6,7 @@ namespace App\Domain\Order\Models;
 
 use App\Domain\Customer\Enums\CustomerSource;
 use App\Domain\Customer\Models\Customer;
+use App\Domain\Delivery\Models\Shipment;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Enums\PaymentStatus;
 use App\Domain\OrderActivity\Models\OrderActivity;
@@ -98,6 +99,11 @@ class Order extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(OrderActivity::class)->latest();
+    }
+
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(Shipment::class)->latest();
     }
 
     public function creator(): BelongsTo
