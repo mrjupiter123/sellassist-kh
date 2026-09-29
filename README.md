@@ -125,3 +125,10 @@ php artisan optimize
 
 If Node.js is unavailable on the server, build assets locally and deploy the generated `public/build` directory. Ensure `storage/` and `bootstrap/cache/` are writable. Never run `migrate:fresh` in production.
 
+The MySQL/MariaDB connection explicitly uses InnoDB, and indexed strings default
+to 191 characters for compatibility with shared-hosting servers that enforce
+older index-length limits. If a migration reports error 1071 (`Specified key was
+too long`), deploy the latest `AppServiceProvider` and database configuration,
+clear cached configuration, and rerun `php artisan migrate --force`. Do not use
+`migrate:fresh` on a database that contains data.
+
