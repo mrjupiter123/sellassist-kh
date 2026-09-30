@@ -13,6 +13,9 @@ use App\Domain\Order\Models\Order;
 use App\Domain\Payment\Enums\Currency;
 use App\Domain\Product\Models\Product;
 use App\Domain\Product\Models\ProductVariant;
+use App\Domain\Social\Enums\ConversationStatus;
+use App\Domain\Social\Models\SocialConversation;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -56,6 +59,10 @@ class DashboardController extends Controller
         $metrics['active_shipments'] = Shipment::query()
             ->whereNotIn('status', [ShipmentStatus::Delivered->value, ShipmentStatus::Returned->value, ShipmentStatus::Cancelled->value])
             ->count();
+        $metrics['open_social_conversations'] = SocialConversation::query()
+            ->where('status', ConversationStatus::Open->value)
+            ->count();
+        $metrics['failed_jobs'] = DB::table('failed_jobs')->count();
         $openCod = Shipment::query()
             ->select(['id', 'cod_amount', 'currency'])
             ->whereIn('cod_status', [CodStatus::Collected->value, CodStatus::PartiallyRemitted->value])

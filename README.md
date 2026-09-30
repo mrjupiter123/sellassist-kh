@@ -1,6 +1,6 @@
 # SellAssist KH
 
-SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, delivery workflow, COD reconciliation, permissions, and a daily dashboard. Social integrations and automation are intentionally out of scope.
+SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, delivery workflow, COD reconciliation, a secure Facebook Messenger order inbox, permissions, integration health, and a daily dashboard. Telegram and AI extraction remain intentionally out of scope.
 
 ## Requirements
 
@@ -78,6 +78,8 @@ Delivery providers and shipments live under the `Delivery` domain. Shipment tran
 
 The optional L192 adapter creates and tracks USD delivery packages through queued HTTP calls. Provider responses and webhook payloads are encrypted at rest; inbound events require HMAC verification and idempotency. See [Delivery provider integrations](docs/DELIVERY_INTEGRATIONS.md) for setup, supported operations, status mappings, and security constraints.
 
+The Messenger adapter verifies Meta's webhook challenge and `X-Hub-Signature-256`, encrypts payloads, deduplicates retries, and queues ingestion. Customer matches are suggestions only. Staff explicitly converts a linked conversation into a server-priced draft order, which cannot affect inventory until the normal confirmation workflow. See [Facebook Messenger order intake](docs/SOCIAL_INTEGRATIONS.md).
+
 ## Tests and formatting
 
 Tests use PHPUnit with an in-memory SQLite database:
@@ -103,6 +105,8 @@ php artisan queue:work --queue=integrations,default --tries=3 --timeout=60
 
 No Laravel scheduler entry is currently required. On cPanel without a persistent worker, invoke `queue:work --queue=integrations,default --stop-when-empty` every minute through cron.
 
+Messenger webhooks use the same `integrations` queue. Administrators can monitor pending/failed jobs, recent delivery failures, and delivery/social webhook health under **Operations**.
+
 ## Stabilization runbooks
 
 - [Staging deployment, mobile seller UAT, and MySQL concurrency verification](docs/STAGING_UAT.md)
@@ -111,6 +115,8 @@ No Laravel scheduler entry is currently required. On cPanel without a persistent
 These environment-dependent checks require hosting access and human testers. Local automated tests do not constitute staging, seller-UAT, or backup-restore sign-off.
 
 ## cPanel deployment
+
+The complete, saveable first-deployment and update checklist is in [cPanel deployment](docs/CPANEL_DEPLOYMENT.md).
 
 Use PHP 8.3+, point the domain document root to `public/`, configure production `.env` values, and then run:
 

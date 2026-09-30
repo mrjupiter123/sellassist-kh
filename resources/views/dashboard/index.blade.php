@@ -15,10 +15,12 @@
     ] as [$label, $value])
         <div class="col-6 col-lg-3"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">{{ $label }}</div><div class="metric-value">{{ number_format($value) }}</div></div></div></div>
     @endforeach
-    <div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Today's completed sales</div><div class="metric-value">USD {{ number_format($metrics['sales_today']['USD'], 2) }}</div><div class="text-secondary">KHR {{ number_format($metrics['sales_today']['KHR'], 2) }}</div></div></div></div>
-    <div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Outstanding order balance</div><div class="metric-value text-danger">USD {{ number_format($metrics['unpaid_amount']['USD'], 2) }}</div><div class="text-secondary">KHR {{ number_format($metrics['unpaid_amount']['KHR'], 2) }}</div></div></div></div>
+    <div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Today's completed sales</div><div class="metric-value">{{ App\Domain\Payment\Enums\Currency::Usd->format($metrics['sales_today']['USD']) }}</div><div class="text-secondary">{{ App\Domain\Payment\Enums\Currency::Khr->format($metrics['sales_today']['KHR']) }}</div></div></div></div>
+    <div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Outstanding order balance</div><div class="metric-value text-danger">{{ App\Domain\Payment\Enums\Currency::Usd->format($metrics['unpaid_amount']['USD']) }}</div><div class="text-secondary">{{ App\Domain\Payment\Enums\Currency::Khr->format($metrics['unpaid_amount']['KHR']) }}</div></div></div></div>
     @can('delivery.view')<div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Active shipments</div><div class="metric-value">{{ number_format($metrics['active_shipments']) }}</div><a href="{{ route('delivery.shipments.index') }}">View delivery queue</a></div></div></div>@endcan
     @can('delivery.cod.reconcile')<div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Collected COD awaiting remittance</div><div class="metric-value text-danger">USD {{ number_format($metrics['cod_outstanding']['USD'], 2) }}</div><div class="text-secondary">KHR {{ number_format($metrics['cod_outstanding']['KHR'], 2) }}</div></div></div></div>@endcan
+    @can('social.view')<div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Open social conversations</div><div class="metric-value">{{ number_format($metrics['open_social_conversations']) }}</div><a href="{{ route('social.inbox.index') }}">Review inbox</a></div></div></div>@endcan
+    @can('operations.view')<div class="col-12 col-md-6"><div class="card metric-card h-100"><div class="card-body"><div class="text-secondary small">Failed background jobs</div><div class="metric-value {{ $metrics['failed_jobs'] > 0 ? 'text-danger' : '' }}">{{ number_format($metrics['failed_jobs']) }}</div><a href="{{ route('operations.index') }}">Open operations health</a></div></div></div>@endcan
 </div>
 
 <div class="row g-4">
@@ -28,7 +30,7 @@
                 <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th class="text-end">Total</th></tr></thead>
                 <tbody>
                 @forelse($recentOrders as $order)
-                    <tr><td><a href="{{ route('orders.show', $order) }}">{{ $order->order_number }}</a><div class="small text-secondary">{{ $order->created_at->diffForHumans() }}</div></td><td>{{ $order->customer->name }}</td><td><span class="badge text-bg-secondary">{{ $order->status->label() }}</span></td><td class="text-end">{{ $order->currency->value }} {{ number_format((float) $order->total, 2) }}</td></tr>
+                    <tr><td><a href="{{ route('orders.show', $order) }}">{{ $order->order_number }}</a><div class="small text-secondary">{{ $order->created_at->diffForHumans() }}</div></td><td>{{ $order->customer->name }}</td><td><span class="badge text-bg-secondary">{{ $order->status->label() }}</span></td><td class="text-end">{{ $order->currency->format($order->total) }}</td></tr>
                 @empty<tr><td colspan="4" class="text-center text-secondary py-4">No orders yet.</td></tr>@endforelse
                 </tbody>
             </table></div>

@@ -25,6 +25,10 @@ Test a narrow phone and a tablet in portrait and landscape. Have a real seller c
 - as an administrator, create and deactivate a staff account.
 - create a shipment, print its Khmer/English label, progress pickup through delivery, and reconcile partial/full COD;
 - fail and retry a delivery, then verify a returned shipment cancels the order and restores stock once;
+- receive a signed Messenger test message, reject an invalid signature, and verify a repeated webhook creates no duplicate message;
+- review a suggested customer match without auto-linking it, then explicitly link or create the customer;
+- convert the conversation to a draft order, verify catalog prices are server-resolved, and verify stock is unchanged;
+- review pending and failed jobs in Operations and safely retry a controlled test failure;
 
 Record device/browser, task completion, confusing labels, layout overflow, Khmer rendering, address format, currency expectations, and receipt printer/paper size. Acceptance requires no blocked task, no negative stock, correct totals, and no horizontal scrolling in normal forms.
 
@@ -40,6 +44,25 @@ SQLite tests verify idempotence, but release acceptance must also exercise targe
 
 The second request may succeed idempotently or receive a validation response; it must never create another movement. Preserve application and database logs with the UAT record.
 
+## Integration sign-off
+
+With issued sandbox credentials, create and sync an L192 shipment, validate the tracking mapping, test a provider failure/retry, and replay the same signed webhook twice. For Meta, complete verification, receive one real Page message, repeat its payload, and verify only one encrypted event/message is stored. Confirm queue latency returns to zero and no unexpected failed job remains. Redact tokens, signatures, phone numbers, and addresses from retained evidence.
+
 ## Release evidence
 
 Do not mark staging, concurrency, or seller UAT complete from local tests. Store the deployment date/commit, tester names, devices, findings, screenshots, database assertions, and sign-off in the release record.
+
+Copy this matrix into the release record and attach evidence for every completed row:
+
+| Gate | Owner | Status | Evidence |
+| --- | --- | --- | --- |
+| cPanel deploy, HTTPS, `/up`, production config |  | Pending |  |
+| Fresh MySQL/MariaDB migration and permission seed |  | Pending |  |
+| Queue cron/worker drains `integrations,default` |  | Pending |  |
+| Concurrent confirm/cancel preserves one stock movement |  | Pending |  |
+| L192 sandbox create, sync, failure/retry, duplicate webhook |  | Pending |  |
+| Meta verification, real message, invalid/duplicate webhook |  | Pending |  |
+| Phone/tablet seller workflow and Khmer rendering |  | Pending |  |
+| Isolated backup restore and record reconciliation |  | Pending |  |
+
+The release is signed off only when every row is complete and the product owner plus technical owner record their names and date. Keep rows **Pending** until they are actually performed in staging.

@@ -24,7 +24,9 @@
                     @can('products.view')<li class="nav-item"><a class="nav-link" href="{{ route('products.index') }}">Products</a></li>@endcan
                     @can('inventory.view')<li class="nav-item"><a class="nav-link" href="{{ route('inventory.index') }}">Inventory</a></li>@endcan
                     @can('delivery.view')<li class="nav-item"><a class="nav-link" href="{{ route('delivery.shipments.index') }}">Delivery</a></li>@endcan
+                    @can('social.view')<li class="nav-item"><a class="nav-link" href="{{ route('social.inbox.index') }}">Social Inbox</a></li>@endcan
                     @can('users.view')<li class="nav-item"><a class="nav-link" href="{{ route('users.index') }}">Users</a></li>@endcan
+                    @can('operations.view')<li class="nav-item"><a class="nav-link" href="{{ route('operations.index') }}">Operations</a></li>@endcan
                 </ul>
                 <span class="navbar-text me-3">{{ auth()->user()->name }}</span>
                 <form method="POST" action="{{ route('logout') }}">

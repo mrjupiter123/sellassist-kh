@@ -39,6 +39,9 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Provider status updates must pass through `ApplyProviderShipmentStatus` and the existing shipment transition action.
 - Webhooks must verify signatures before persistence, use stable idempotency keys, and store sensitive payloads encrypted.
 - Keep provider credentials in environment configuration; never store or log tokens.
+- Social webhooks must verify Meta signatures before persistence, encrypt payloads, and deduplicate retries.
+- Social identity matches are suggestions only; never merge or link customers without staff review.
+- Social conversations may create reviewed draft orders only. They must never directly confirm orders, deduct stock, record payments, or create shipments.
 
 ## Development practices
 
@@ -54,5 +57,5 @@ This is SellMate KH, branded in the application as SellAssist KH.
 
 ## Scope
 
-The implemented core covers local authentication, roles and permissions, customers, products and variants, inventory movements, orders, controlled amendments, payments, returns, refunds, delivery workflow, COD reconciliation, an L192 delivery adapter, secure delivery webhooks, and the operational dashboard. Do not add social-network APIs, AI parsing, payment gateways, additional external courier APIs, multi-tenancy, subscriptions, WebSockets, or microservices unless a later phase explicitly requests them.
+The implemented core covers local authentication, roles and permissions, customers, products and variants, inventory movements, orders, controlled amendments, payments, returns, refunds, delivery workflow, COD reconciliation, an L192 delivery adapter, secure delivery webhooks, Facebook Messenger inbox-to-draft intake, integration health, and the operational dashboard. Do not add Telegram, AI parsing, payment gateways, additional external courier APIs, multi-tenancy, subscriptions, WebSockets, or microservices unless a later phase explicitly requests them.
 

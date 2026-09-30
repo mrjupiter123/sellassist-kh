@@ -7,7 +7,9 @@ use App\Http\Controllers\CodRemittanceController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryProviderController;
+use App\Http\Controllers\FailedJobController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderReturnController;
 use App\Http\Controllers\OrderStatusController;
@@ -18,6 +20,10 @@ use App\Http\Controllers\RefundController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\ShipmentIntegrationController;
 use App\Http\Controllers\ShipmentStatusController;
+use App\Http\Controllers\SocialChannelController;
+use App\Http\Controllers\SocialContactController;
+use App\Http\Controllers\SocialConversationController;
+use App\Http\Controllers\SocialOrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -82,6 +88,18 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::post('/delivery/providers', [DeliveryProviderController::class, 'store'])->middleware('permission:delivery.providers.manage')->name('delivery.providers.store');
     Route::get('/delivery/providers/{provider}/edit', [DeliveryProviderController::class, 'edit'])->middleware('permission:delivery.providers.manage')->name('delivery.providers.edit');
     Route::put('/delivery/providers/{provider}', [DeliveryProviderController::class, 'update'])->middleware('permission:delivery.providers.manage')->name('delivery.providers.update');
+
+    Route::get('/social/inbox', [SocialConversationController::class, 'index'])->middleware('permission:social.view')->name('social.inbox.index');
+    Route::get('/social/inbox/{conversation}', [SocialConversationController::class, 'show'])->middleware('permission:social.view')->name('social.inbox.show');
+    Route::post('/social/inbox/{conversation}/link-customer', [SocialContactController::class, 'link'])->middleware('permission:social.manage')->name('social.inbox.link-customer');
+    Route::post('/social/inbox/{conversation}/customers', [SocialContactController::class, 'createCustomer'])->middleware('permission:social.manage')->name('social.inbox.customers.store');
+    Route::post('/social/inbox/{conversation}/draft-order', [SocialOrderController::class, 'store'])->middleware('permission:social.manage')->name('social.inbox.draft-order.store');
+    Route::get('/social/channels', [SocialChannelController::class, 'index'])->middleware('permission:social.channels.manage')->name('social.channels.index');
+    Route::post('/social/channels', [SocialChannelController::class, 'store'])->middleware('permission:social.channels.manage')->name('social.channels.store');
+    Route::put('/social/channels/{channel}', [SocialChannelController::class, 'update'])->middleware('permission:social.channels.manage')->name('social.channels.update');
+
+    Route::get('/operations', OperationsController::class)->middleware('permission:operations.view')->name('operations.index');
+    Route::post('/operations/failed-jobs/{uuid}/retry', [FailedJobController::class, 'retry'])->middleware('permission:operations.retry')->name('operations.failed-jobs.retry');
 
     Route::get('/users', [UserController::class, 'index'])->middleware('permission:users.view')->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->middleware('permission:users.manage')->name('users.create');
