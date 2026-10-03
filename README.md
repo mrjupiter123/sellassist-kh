@@ -1,6 +1,6 @@
 # SellAssist KH
 
-SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, delivery workflow, COD reconciliation, a secure Facebook Messenger order inbox, permissions, integration health, and a daily dashboard. Telegram and AI extraction remain intentionally out of scope.
+SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, delivery workflow, COD reconciliation, secure Facebook Messenger and Telegram order intake, permissions, integration health, and a daily dashboard. AI extraction remains intentionally out of scope.
 
 ## Requirements
 
@@ -80,6 +80,8 @@ The optional L192 adapter creates and tracks USD delivery packages through queue
 
 The Messenger adapter verifies Meta's webhook challenge and `X-Hub-Signature-256`, encrypts payloads, deduplicates retries, and queues ingestion. Customer matches are suggestions only. Staff explicitly converts a linked conversation into a server-priced draft order, which cannot affect inventory until the normal confirmation workflow. See [Facebook Messenger order intake](docs/SOCIAL_INTEGRATIONS.md).
 
+The Telegram adapter validates `X-Telegram-Bot-Api-Secret-Token`, accepts private bot messages, encrypts and deduplicates updates, and uses the same reviewed draft-order boundary. Bot credentials remain environment-only, and `social:telegram:configure` registers the webhook without placing the bot token in the database or callback. See [Telegram order intake](docs/TELEGRAM_INTEGRATION.md).
+
 ## Tests and formatting
 
 Tests use PHPUnit with an in-memory SQLite database:
@@ -105,7 +107,7 @@ php artisan queue:work --queue=integrations,default --tries=3 --timeout=60
 
 No Laravel scheduler entry is currently required. On cPanel without a persistent worker, invoke `queue:work --queue=integrations,default --stop-when-empty` every minute through cron.
 
-Messenger webhooks use the same `integrations` queue. Administrators can monitor pending/failed jobs, recent delivery failures, and delivery/social webhook health under **Operations**.
+Messenger and Telegram webhooks use the same `integrations` queue. Administrators can monitor pending/failed jobs, recent delivery failures, and delivery/social webhook health under **Operations**.
 
 ## Stabilization runbooks
 

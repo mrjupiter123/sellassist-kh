@@ -18,6 +18,8 @@ class SocialChannelController extends Controller
     {
         return view('social.channels.index', [
             'channels' => SocialChannel::query()->withCount(['contacts', 'conversations'])->orderBy('name')->get(),
+            'telegramReady' => filled(config('social.telegram.bot_token'))
+                && filled(config('social.telegram.webhook_secret')),
         ]);
     }
 
@@ -25,7 +27,7 @@ class SocialChannelController extends Controller
     {
         $action->execute($request->validated(), $request->user());
 
-        return back()->with('success', 'Messenger channel created successfully.');
+        return back()->with('success', 'Facebook Messenger channel created successfully.');
     }
 
     public function update(
@@ -35,6 +37,6 @@ class SocialChannelController extends Controller
     ): RedirectResponse {
         $action->execute($channel, $request->validated());
 
-        return back()->with('success', 'Messenger channel updated successfully.');
+        return back()->with('success', 'Social channel updated successfully.');
     }
 }

@@ -7,6 +7,8 @@ namespace App\Domain\Social\Adapters;
 use App\Domain\Social\Contracts\SocialProviderAdapter;
 use App\Domain\Social\Data\InboundSocialMessage;
 use App\Domain\Social\Enums\MessageType;
+use App\Domain\Social\Enums\SocialPlatform;
+use App\Domain\Social\Models\SocialChannel;
 use Carbon\CarbonImmutable;
 
 final class MetaMessengerAdapter implements SocialProviderAdapter
@@ -22,7 +24,7 @@ final class MetaMessengerAdapter implements SocialProviderAdapter
             && hash_equals(hash_hmac('sha256', $rawPayload, $secret), $provided);
     }
 
-    public function messages(array $payload): array
+    public function messages(array $payload, ?SocialChannel $channel = null): array
     {
         if (($payload['object'] ?? null) !== 'page') {
             return [];
@@ -54,9 +56,11 @@ final class MetaMessengerAdapter implements SocialProviderAdapter
                 }
 
                 $messages[] = new InboundSocialMessage(
+                    platform: SocialPlatform::FacebookMessenger,
                     channelExternalId: $channelId,
                     contactExternalId: $contactId,
                     messageExternalId: $externalId,
+                    contactDisplayName: null,
                     type: $body !== null && $body !== ''
                         ? MessageType::Text
                         : ($attachments !== [] ? MessageType::Attachment : MessageType::Unsupported),

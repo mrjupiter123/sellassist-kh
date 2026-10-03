@@ -1,4 +1,4 @@
-# Facebook Messenger order intake
+# Social order intake: Facebook Messenger
 
 SellAssist receives Facebook Page Messenger events into a reviewed social inbox. Incoming messages never confirm an order, change inventory, record a payment, or create a shipment. Staff must link or create a customer and explicitly convert a conversation into a draft order; normal order permissions and workflows apply afterward.
 
@@ -39,6 +39,6 @@ On shared cPanel without a persistent process, use the minute cron documented in
 5. Product prices and totals are resolved again on the server.
 6. A seller reviews the normal order screen and confirms only when ready. Stock remains unchanged while the order is a draft.
 
-Telegram and AI extraction are not included in this increment. They should reuse this reviewed-draft boundary rather than bypassing it.
+Telegram uses the same reviewed-draft boundary and is documented in [Telegram order intake](TELEGRAM_INTEGRATION.md). AI extraction is not included.
 
 Official Meta setup reference: [Webhooks for Pages](https://developers.facebook.com/docs/graph-api/webhooks/getting-started/).

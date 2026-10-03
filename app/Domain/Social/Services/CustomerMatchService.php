@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Social\Services;
 
 use App\Domain\Customer\Models\Customer;
+use App\Domain\Social\Enums\SocialPlatform;
 use App\Domain\Social\Models\SocialContact;
 
 final class CustomerMatchService
@@ -15,7 +16,8 @@ final class CustomerMatchService
             return null;
         }
 
-        if (filled($contact->display_name)) {
+        $contact->loadMissing('channel');
+        if ($contact->channel->platform === SocialPlatform::FacebookMessenger && filled($contact->display_name)) {
             $nameMatches = Customer::query()
                 ->where('facebook_name', $contact->display_name)
                 ->limit(2)

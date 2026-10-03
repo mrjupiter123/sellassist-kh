@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Messenger conversation')
+@section('title', 'Social conversation')
 
 @section('content')
 <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-    <div><h1 class="h3 mb-1">{{ $conversation->contact->display_name ?: 'Messenger user' }}</h1><p class="text-muted mb-0">{{ $conversation->channel->name }} · Facebook ID {{ $conversation->contact->external_id }}</p></div>
+    <div><h1 class="h3 mb-1">{{ $conversation->contact->display_name ?: $conversation->channel->platform->label().' user' }}</h1><p class="text-muted mb-0">{{ $conversation->channel->name }} · {{ $conversation->channel->platform->label() }} ID {{ $conversation->contact->external_id }}</p></div>
     <a href="{{ route('social.inbox.index') }}" class="btn btn-outline-secondary">Back to inbox</a>
 </div>
 

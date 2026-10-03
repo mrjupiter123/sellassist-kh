@@ -9,6 +9,7 @@ use App\Domain\Order\Actions\CreateOrder;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Models\Order;
 use App\Domain\Social\Enums\ConversationStatus;
+use App\Domain\Social\Enums\SocialPlatform;
 use App\Domain\Social\Exceptions\SocialConversationException;
 use App\Domain\Social\Models\SocialConversation;
 use App\Models\User;
@@ -32,12 +33,17 @@ final class ConvertConversationToDraftOrder
                 throw new SocialConversationException('Link or create a customer before converting this conversation.');
             }
 
+            $locked->loadMissing('channel');
+            $source = match ($locked->channel->platform) {
+                SocialPlatform::FacebookMessenger => CustomerSource::Messenger,
+                SocialPlatform::Telegram => CustomerSource::Telegram,
+            };
             $order = $this->createOrder->execute([
                 ...$data,
                 'customer_id' => $customerId,
-                'source' => CustomerSource::Messenger->value,
+                'source' => $source->value,
                 'status' => OrderStatus::Draft->value,
-                'notes' => trim('Messenger conversation '.$locked->uuid."\n".($data['notes'] ?? '')),
+                'notes' => trim($locked->channel->platform->label().' conversation '.$locked->uuid."\n".($data['notes'] ?? '')),
             ], $actor);
 
             $locked->update([

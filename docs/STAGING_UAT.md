@@ -26,6 +26,7 @@ Test a narrow phone and a tablet in portrait and landscape. Have a real seller c
 - create a shipment, print its Khmer/English label, progress pickup through delivery, and reconcile partial/full COD;
 - fail and retry a delivery, then verify a returned shipment cancels the order and restores stock once;
 - receive a signed Messenger test message, reject an invalid signature, and verify a repeated webhook creates no duplicate message;
+- configure a Telegram bot, receive a signed private message, reject an invalid secret, and verify a repeated `update_id` creates no duplicate;
 - review a suggested customer match without auto-linking it, then explicitly link or create the customer;
 - convert the conversation to a draft order, verify catalog prices are server-resolved, and verify stock is unchanged;
 - review pending and failed jobs in Operations and safely retry a controlled test failure;
@@ -46,7 +47,7 @@ The second request may succeed idempotently or receive a validation response; it
 
 ## Integration sign-off
 
-With issued sandbox credentials, create and sync an L192 shipment, validate the tracking mapping, test a provider failure/retry, and replay the same signed webhook twice. For Meta, complete verification, receive one real Page message, repeat its payload, and verify only one encrypted event/message is stored. Confirm queue latency returns to zero and no unexpected failed job remains. Redact tokens, signatures, phone numbers, and addresses from retained evidence.
+With issued sandbox credentials, create and sync an L192 shipment, validate the tracking mapping, test a provider failure/retry, and replay the same signed webhook twice. For Meta, complete verification, receive one real Page message, repeat its payload, and verify only one encrypted event/message is stored. For Telegram, configure the real staging bot, receive a private message, replay its `update_id`, and confirm the secret header plus encryption/idempotency controls. Confirm queue latency returns to zero and no unexpected failed job remains. Redact tokens, signatures, phone numbers, and addresses from retained evidence.
 
 ## Release evidence
 
@@ -62,6 +63,7 @@ Copy this matrix into the release record and attach evidence for every completed
 | Concurrent confirm/cancel preserves one stock movement |  | Pending |  |
 | L192 sandbox create, sync, failure/retry, duplicate webhook |  | Pending |  |
 | Meta verification, real message, invalid/duplicate webhook |  | Pending |  |
+| Telegram bot, signed private message, invalid/duplicate webhook |  | Pending |  |
 | Phone/tablet seller workflow and Khmer rendering |  | Pending |  |
 | Isolated backup restore and record reconciliation |  | Pending |  |
 

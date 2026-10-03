@@ -8,13 +8,14 @@ use App\Domain\Social\Enums\SocialPlatform;
 use App\Domain\Social\Enums\SocialWebhookStatus;
 use App\Support\HasPublicUuid;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SocialWebhookEvent extends Model
 {
     use HasPublicUuid;
 
     protected $fillable = [
-        'platform', 'event_id', 'status', 'payload', 'processed_messages',
+        'social_channel_id', 'platform', 'event_id', 'status', 'payload', 'processed_messages',
         'error', 'received_at', 'processed_at',
     ];
 
@@ -28,5 +29,10 @@ class SocialWebhookEvent extends Model
             'received_at' => 'datetime',
             'processed_at' => 'datetime',
         ];
+    }
+
+    public function channel(): BelongsTo
+    {
+        return $this->belongsTo(SocialChannel::class, 'social_channel_id');
     }
 }

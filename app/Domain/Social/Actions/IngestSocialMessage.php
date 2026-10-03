@@ -27,6 +27,7 @@ final class IngestSocialMessage
             }
 
             $channel = SocialChannel::query()
+                ->where('platform', $inbound->platform->value)
                 ->where('external_id', $inbound->channelExternalId)
                 ->where('active', true)
                 ->first();
@@ -36,9 +37,16 @@ final class IngestSocialMessage
 
             $contact = SocialContact::query()->firstOrCreate(
                 ['social_channel_id' => $channel->id, 'external_id' => $inbound->contactExternalId],
-                ['first_seen_at' => $inbound->sentAt, 'last_seen_at' => $inbound->sentAt],
+                [
+                    'display_name' => $inbound->contactDisplayName,
+                    'first_seen_at' => $inbound->sentAt,
+                    'last_seen_at' => $inbound->sentAt,
+                ],
             );
-            $contact->update(['last_seen_at' => $inbound->sentAt]);
+            $contact->update(array_filter([
+                'display_name' => $inbound->contactDisplayName,
+                'last_seen_at' => $inbound->sentAt,
+            ], fn (mixed $value): bool => $value !== null));
 
             $conversation = SocialConversation::query()
                 ->where('social_contact_id', $contact->id)

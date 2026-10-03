@@ -28,6 +28,13 @@ CACHE_STORE=database
 QUEUE_CONNECTION=database
 ```
 
+Optional Telegram intake requires environment-only credentials created through `@BotFather`:
+
+```dotenv
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_WEBHOOK_SECRET=
+```
+
 6. From cPanel Terminal, run from the project directory:
 
 ```bash
@@ -39,6 +46,12 @@ php artisan migrate --force
 php artisan db:seed --class=RolePermissionSeeder --force
 php artisan storage:link
 php artisan optimize
+```
+
+After setting Telegram credentials and confirming `APP_URL` uses public HTTPS, register its webhook once:
+
+```bash
+php artisan social:telegram:configure
 ```
 
 Do not run `migrate:fresh` on a database containing data. If the server cannot run Node.js, run `npm ci && npm run build` locally and upload the generated `public/build` folder. Otherwise build it on the server before `php artisan optimize`.

@@ -27,12 +27,18 @@ class UpdateSocialChannelRequest extends FormRequest
         /** @var SocialChannel $channel */
         $channel = $this->route('channel');
 
+        $externalIdRules = ['required', 'string', 'max:191'];
+        if ($channel->platform === SocialPlatform::Telegram) {
+            $externalIdRules[] = Rule::in([$channel->external_id]);
+        } else {
+            $externalIdRules[] = Rule::unique('social_channels')
+                ->where('platform', $channel->platform->value)
+                ->ignore($channel->id);
+        }
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'external_id' => [
-                'required', 'string', 'max:191',
-                Rule::unique('social_channels')->where('platform', SocialPlatform::FacebookMessenger->value)->ignore($channel->id),
-            ],
+            'external_id' => $externalIdRules,
             'active' => ['required', 'boolean'],
         ];
     }
