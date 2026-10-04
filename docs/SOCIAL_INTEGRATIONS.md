@@ -16,6 +16,7 @@ Set server-only values in `.env`:
 META_APP_SECRET=
 META_WEBHOOK_VERIFY_TOKEN=use-a-long-random-value
 META_PAGE_ACCESS_TOKEN=
+META_GRAPH_VERSION=v26.0
 ```
 
 Never expose or commit these values. In Meta, use the same verification token, subscribe the Page to Messenger message events, then add its numeric Facebook Page ID under **Social Inbox → Messenger settings**. The Page must be active locally for messages to be accepted.
@@ -38,6 +39,12 @@ On shared cPanel without a persistent process, use the minute cron documented in
 4. Staff selects catalog items and converts the conversation to a draft.
 5. Product prices and totals are resolved again on the server.
 6. A seller reviews the normal order screen and confirms only when ready. Stock remains unchanged while the order is a draft.
+
+## Manual replies
+
+Staff with `social.reply` may send a text reply from an open or converted conversation. SellAssist encrypts and saves the message as pending, then the `integrations` queue sends it through the configured Page token. Successful messages retain the provider message identifier and encrypted response; failures remain visible in the conversation and failed-job operations view.
+
+Meta controls whether a reply is permitted based on app mode, `pages_messaging` approval, recipient eligibility, and the current messaging window. A provider rejection does not remove the local message or change any order, inventory, payment, or shipment record.
 
 Telegram uses the same reviewed-draft boundary and is documented in [Telegram order intake](TELEGRAM_INTEGRATION.md). AI extraction is not included.
 

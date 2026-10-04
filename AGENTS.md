@@ -43,6 +43,8 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Telegram bot tokens and webhook secrets remain environment-only. Telegram configuration goes through `social:telegram:configure`; never expose tokens in routes, views, logs, or database records.
 - Social identity matches are suggestions only; never merge or link customers without staff review.
 - Social conversations may create reviewed draft orders only. They must never directly confirm orders, deduct stock, record payments, or create shipments.
+- Staff social replies must be persisted before dispatch and sent only through the queued social sender. Never call Meta or Telegram APIs from controllers.
+- Outbound social message bodies and provider responses remain encrypted at rest; provider tokens must never be included in stored errors.
 
 ## Development practices
 

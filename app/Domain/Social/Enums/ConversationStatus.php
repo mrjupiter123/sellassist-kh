@@ -14,4 +14,9 @@ enum ConversationStatus: string
     {
         return str($this->value)->headline()->toString();
     }
+
+    public function allowsReplies(): bool
+    {
+        return $this !== self::Archived;
+    }
 }

@@ -18,6 +18,12 @@
                         <div class="rounded-3 px-3 py-2 {{ $message->direction->value === 'outbound' ? 'bg-primary text-white' : 'bg-light' }}" style="max-width: 85%">
                             <div>{{ $message->body ?: '['.$message->type->value.']' }}</div>
                             <small class="opacity-75">{{ $message->sent_at->format('d M Y H:i') }}</small>
+                            @if ($message->delivery_status)
+                                <span class="badge {{ $message->delivery_status->isFailed() ? 'text-bg-danger' : 'text-bg-light' }} ms-1">{{ $message->delivery_status->label() }}</span>
+                                @if ($message->delivery_status->isFailed() && $message->delivery_error)
+                                    <div class="small mt-1">{{ $message->delivery_error }}</div>
+                                @endif
+                            @endif
                         </div>
                     </div>
                 @empty
@@ -25,6 +31,24 @@
                 @endforelse
             </div>
         </div>
+
+        @can('social.reply')
+            @if ($conversation->status->allowsReplies())
+                <form method="POST" action="{{ route('social.inbox.replies.store', $conversation) }}" class="card shadow-sm mb-4">
+                    @csrf
+                    <div class="card-header bg-white fw-semibold">Reply to customer</div>
+                    <div class="card-body">
+                        <label class="form-label" for="reply-body">Message</label>
+                        <textarea id="reply-body" class="form-control @error('body') is-invalid @enderror" name="body" rows="3" maxlength="2000" required>{{ old('body') }}</textarea>
+                        @error('body')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">The reply is encrypted locally and delivered through the integrations queue.</div>
+                    </div>
+                    <div class="card-footer bg-white text-end"><button class="btn btn-primary">Send reply</button></div>
+                </form>
+            @else
+                <div class="alert alert-secondary">This conversation is archived and cannot receive replies.</div>
+            @endif
+        @endcan
 
         @if ($conversation->convertedOrder)
             <div class="alert alert-success">Converted to <a href="{{ route('orders.show', $conversation->convertedOrder) }}">{{ $conversation->convertedOrder->order_number }}</a>. Inventory was not deducted because it is a draft.</div>

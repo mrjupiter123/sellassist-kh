@@ -5,6 +5,7 @@ return [
         'app_secret' => env('META_APP_SECRET'),
         'verify_token' => env('META_WEBHOOK_VERIFY_TOKEN'),
         'page_access_token' => env('META_PAGE_ACCESS_TOKEN'),
+        'graph_version' => env('META_GRAPH_VERSION', 'v26.0'),
     ],
     'telegram' => [
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),

@@ -1,6 +1,6 @@
 # Telegram order intake
 
-SellAssist receives private Telegram Bot messages into the same reviewed Social Inbox used by Messenger. It does not ingest group chats, send automatic replies, download attachments, or bypass the trusted order workflow.
+SellAssist receives private Telegram Bot messages into the same reviewed Social Inbox used by Messenger. It does not ingest group chats, send automatic replies, download attachments, or bypass the trusted order workflow. Authorized staff may manually reply from the inbox through the queued Bot API sender.
 
 ## Create and configure the bot
 
@@ -41,6 +41,8 @@ Never paste the bot token into the callback URL, database, browser, screenshots,
 ## Test
 
 Keep the `integrations` queue worker or cPanel cron active. Open the bot from a personal Telegram account, tap **Start**, and send a new private message. Within the cron interval, the conversation should appear under **Social Inbox** and the Operations page should show the event processed.
+
+Open the conversation and use **Reply to customer** to test outbound delivery. The reply first appears as pending and changes to sent after the queue worker runs. A rejected reply is retained with a safe failure message and can be investigated through **Operations** without exposing the bot token.
 
 Telegram sends the configured secret in `X-Telegram-Bot-Api-Secret-Token`. SellAssist rejects requests without the exact secret, encrypts accepted payloads and message contents, uses the bot/update identifier for idempotency, and safely acknowledges retries. Telegram documents that failed webhook deliveries are retried and that `update_id` supports duplicate handling.
 

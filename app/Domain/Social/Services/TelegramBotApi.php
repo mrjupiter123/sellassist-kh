@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Social\Services;
 
+use App\Domain\Social\Data\OutboundSocialMessageResult;
+use App\Domain\Social\Exceptions\SocialMessageDeliveryException;
+use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
@@ -38,6 +41,28 @@ final class TelegramBotApi
     public function webhookInfo(): array
     {
         return $this->request('getWebhookInfo');
+    }
+
+    public function sendText(string $chatId, string $text): OutboundSocialMessageResult
+    {
+        try {
+            $result = $this->request('sendMessage', [
+                'chat_id' => $chatId,
+                'text' => $text,
+            ]);
+        } catch (DomainException $exception) {
+            throw new SocialMessageDeliveryException($exception->getMessage());
+        }
+
+        if (blank($result['message_id'] ?? null)) {
+            throw new SocialMessageDeliveryException('Telegram did not return a message identifier.');
+        }
+
+        return new OutboundSocialMessageResult(
+            externalId: 'telegram:'.$chatId.':'.(string) $result['message_id'],
+            sentAt: CarbonImmutable::createFromTimestampUTC((int) ($result['date'] ?? now()->timestamp)),
+            payload: $result,
+        );
     }
 
     /**
