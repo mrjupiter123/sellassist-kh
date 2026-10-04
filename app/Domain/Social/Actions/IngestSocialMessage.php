@@ -72,7 +72,10 @@ final class IngestSocialMessage
                 'raw_payload' => $inbound->rawPayload,
                 'sent_at' => $inbound->sentAt,
             ]);
-            $conversation->update(['last_message_at' => $inbound->sentAt]);
+            $conversation->update([
+                'last_message_at' => $inbound->sentAt,
+                'last_inbound_at' => $inbound->sentAt,
+            ]);
 
             $suggestion = $this->customerMatcher->suggest($contact, $inbound->body);
             if ($suggestion !== null && $contact->suggested_customer_id === null) {

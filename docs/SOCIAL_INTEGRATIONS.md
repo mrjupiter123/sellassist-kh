@@ -46,6 +46,13 @@ Staff with `social.reply` may send a text reply from an open or converted conver
 
 Meta controls whether a reply is permitted based on app mode, `pages_messaging` approval, recipient eligibility, and the current messaging window. A provider rejection does not remove the local message or change any order, inventory, payment, or shipment record.
 
+## Inbox operations
+
+- Assign a conversation only to an active user who can access the social inbox.
+- Use **Unread** and assignment filters to organize the queue. Read state is tracked independently for each user and only a later inbound message makes a read conversation unread again.
+- Archive completed conversations through the controlled status action. Archived conversations cannot send replies; reopening restores a converted conversation to converted status when it already has an order.
+- Manage encrypted reply templates under **Social Inbox → Reply templates**. Choosing a template only fills the reply form; staff must still review and submit it.
+
 Telegram uses the same reviewed-draft boundary and is documented in [Telegram order intake](TELEGRAM_INTEGRATION.md). AI extraction is not included.
 
 Official Meta setup reference: [Webhooks for Pages](https://developers.facebook.com/docs/graph-api/webhooks/getting-started/).

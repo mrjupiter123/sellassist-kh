@@ -1,6 +1,6 @@
 # SellAssist KH
 
-SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, delivery workflow, COD reconciliation, secure Facebook Messenger and Telegram order intake and queued staff replies, permissions, integration health, and a daily dashboard. AI extraction remains intentionally out of scope.
+SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, delivery workflow, COD reconciliation, secure Facebook Messenger and Telegram order intake, assigned inbox workflows, per-user unread tracking, queued staff replies and encrypted reply templates, permissions, integration health, and a daily dashboard. AI extraction remains intentionally out of scope.
 
 ## Requirements
 
@@ -83,6 +83,8 @@ The Messenger adapter verifies Meta's webhook challenge and `X-Hub-Signature-256
 The Telegram adapter validates `X-Telegram-Bot-Api-Secret-Token`, accepts private bot messages, encrypts and deduplicates updates, and uses the same reviewed draft-order boundary. Bot credentials remain environment-only, and `social:telegram:configure` registers the webhook without placing the bot token in the database or callback. See [Telegram order intake](docs/TELEGRAM_INTEGRATION.md).
 
 Authorized staff can manually reply from a social conversation. Replies are encrypted and persisted as pending before a queued provider call, then marked sent or failed with a safe operational error. Controllers never call Meta or Telegram directly. Messenger replies require a valid Page access token and must comply with Meta's messaging window and app-review requirements.
+
+The social inbox supports staff assignment, per-user unread filtering, controlled archive/reopen transitions, and encrypted reusable reply templates. Viewing a conversation marks it read only for the current user; a later inbound message makes it unread again. Templates populate the reviewed reply form but never send automatically.
 
 ## Tests and formatting
 

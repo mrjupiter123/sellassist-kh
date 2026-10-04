@@ -17,8 +17,9 @@ class SocialConversation extends Model
     use HasPublicUuid;
 
     protected $fillable = [
-        'social_channel_id', 'social_contact_id', 'status', 'assigned_to',
-        'converted_order_id', 'converted_by', 'last_message_at', 'converted_at',
+        'social_channel_id', 'social_contact_id', 'status', 'assigned_to', 'assigned_at', 'assigned_by',
+        'archived_at', 'archived_by', 'converted_order_id', 'converted_by', 'last_message_at',
+        'last_inbound_at', 'converted_at',
     ];
 
     protected function casts(): array
@@ -26,6 +27,9 @@ class SocialConversation extends Model
         return [
             'status' => ConversationStatus::class,
             'last_message_at' => 'datetime',
+            'last_inbound_at' => 'datetime',
+            'assigned_at' => 'datetime',
+            'archived_at' => 'datetime',
             'converted_at' => 'datetime',
         ];
     }
@@ -53,5 +57,33 @@ class SocialConversation extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function assigner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
+    }
+
+    public function archiver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
+    public function readReceipts(): HasMany
+    {
+        return $this->hasMany(SocialConversationRead::class);
+    }
+
+    public function isUnreadFor(User $user): bool
+    {
+        if ($this->last_inbound_at === null) {
+            return false;
+        }
+
+        $receipt = $this->relationLoaded('readReceipts')
+            ? $this->readReceipts->firstWhere('user_id', $user->id)
+            : $this->readReceipts()->where('user_id', $user->id)->first();
+
+        return $receipt === null || $receipt->read_at->lt($this->last_inbound_at);
     }
 }

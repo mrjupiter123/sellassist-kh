@@ -44,6 +44,8 @@ Keep the `integrations` queue worker or cPanel cron active. Open the bot from a 
 
 Open the conversation and use **Reply to customer** to test outbound delivery. The reply first appears as pending and changes to sent after the queue worker runs. A rejected reply is retained with a safe failure message and can be investigated through **Operations** without exposing the bot token.
 
+Staff assignment, per-user unread state, archive/reopen controls, and reply templates work identically for Telegram and Messenger conversations.
+
 Telegram sends the configured secret in `X-Telegram-Bot-Api-Secret-Token`. SellAssist rejects requests without the exact secret, encrypts accepted payloads and message contents, uses the bot/update identifier for idempotency, and safely acknowledges retries. Telegram documents that failed webhook deliveries are retried and that `update_id` supports duplicate handling.
 
 ## Review boundary

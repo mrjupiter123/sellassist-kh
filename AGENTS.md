@@ -45,6 +45,9 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Social conversations may create reviewed draft orders only. They must never directly confirm orders, deduct stock, record payments, or create shipments.
 - Staff social replies must be persisted before dispatch and sent only through the queued social sender. Never call Meta or Telegram APIs from controllers.
 - Outbound social message bodies and provider responses remain encrypted at rest; provider tokens must never be included in stored errors.
+- Social conversation assignment and archive/reopen changes go through their Social-domain actions; assignees must be active users with inbox access.
+- Social unread state is per user and is based on the latest inbound message, never on outbound replies.
+- Reply templates are encrypted reusable text only. Selecting a template must never auto-send it or trigger any order workflow.
 
 ## Development practices
 

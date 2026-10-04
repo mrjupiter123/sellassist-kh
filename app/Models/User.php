@@ -13,6 +13,8 @@ use App\Domain\OrderActivity\Models\OrderActivity;
 use App\Domain\OrderReturn\Models\OrderReturn;
 use App\Domain\Payment\Models\Payment;
 use App\Domain\Payment\Models\Refund;
+use App\Domain\Social\Models\SocialConversation;
+use App\Domain\Social\Models\SocialConversationRead;
 use App\Support\HasPublicUuid;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -105,5 +107,15 @@ class User extends Authenticatable
     public function codRemittances(): HasMany
     {
         return $this->hasMany(CodRemittance::class, 'created_by');
+    }
+
+    public function assignedSocialConversations(): HasMany
+    {
+        return $this->hasMany(SocialConversation::class, 'assigned_to');
+    }
+
+    public function socialConversationReads(): HasMany
+    {
+        return $this->hasMany(SocialConversationRead::class);
     }
 }

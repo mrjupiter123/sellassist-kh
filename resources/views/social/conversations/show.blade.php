@@ -5,7 +5,10 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
     <div><h1 class="h3 mb-1">{{ $conversation->contact->display_name ?: $conversation->channel->platform->label().' user' }}</h1><p class="text-muted mb-0">{{ $conversation->channel->name }} · {{ $conversation->channel->platform->label() }} ID {{ $conversation->contact->external_id }}</p></div>
-    <a href="{{ route('social.inbox.index') }}" class="btn btn-outline-secondary">Back to inbox</a>
+    <div class="d-flex gap-2">
+        <form method="POST" action="{{ route('social.inbox.read.destroy', $conversation) }}">@csrf @method('DELETE')<button class="btn btn-outline-primary">Mark unread</button></form>
+        <a href="{{ route('social.inbox.index') }}" class="btn btn-outline-secondary">Back to inbox</a>
+    </div>
 </div>
 
 <div class="row g-4">
@@ -34,12 +37,16 @@
 
         @can('social.reply')
             @if ($conversation->status->allowsReplies())
-                <form method="POST" action="{{ route('social.inbox.replies.store', $conversation) }}" class="card shadow-sm mb-4">
+                <form method="POST" action="{{ route('social.inbox.replies.store', $conversation) }}" class="card shadow-sm mb-4" x-data="{ body: {{ Illuminate\Support\Js::from(old('body', '')) }}, templates: {{ Illuminate\Support\Js::from($replyTemplates) }}, useTemplate(id) { const template = this.templates.find(item => String(item.id) === String(id)); if (template) this.body = template.body; } }">
                     @csrf
                     <div class="card-header bg-white fw-semibold">Reply to customer</div>
                     <div class="card-body">
+                        @if ($replyTemplates->isNotEmpty())
+                            <label class="form-label" for="reply-template">Reply template</label>
+                            <select id="reply-template" class="form-select mb-3" @change="useTemplate($event.target.value)"><option value="">Write a custom reply</option>@foreach ($replyTemplates as $template)<option value="{{ $template->id }}">{{ $template->title }}</option>@endforeach</select>
+                        @endif
                         <label class="form-label" for="reply-body">Message</label>
-                        <textarea id="reply-body" class="form-control @error('body') is-invalid @enderror" name="body" rows="3" maxlength="2000" required>{{ old('body') }}</textarea>
+                        <textarea id="reply-body" class="form-control @error('body') is-invalid @enderror" name="body" rows="3" maxlength="2000" x-model="body" required></textarea>
                         @error('body')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         <div class="form-text">The reply is encrypted locally and delivered through the integrations queue.</div>
                     </div>
@@ -80,6 +87,24 @@
     </div>
 
     <div class="col-lg-5">
+        @can('social.manage')
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white fw-semibold">Inbox workflow</div>
+                <div class="card-body vstack gap-3">
+                    <form method="POST" action="{{ route('social.inbox.assignment.update', $conversation) }}">
+                        @csrf @method('PATCH')
+                        <label class="form-label" for="assigned_to">Assigned staff</label>
+                        <div class="input-group"><select class="form-select" id="assigned_to" name="assigned_to"><option value="">Unassigned</option>@foreach ($assignees as $assignee)<option value="{{ $assignee->id }}" @selected($conversation->assigned_to === $assignee->id)>{{ $assignee->name }}</option>@endforeach</select><button class="btn btn-outline-primary">Assign</button></div>
+                        @if ($conversation->assigned_at)<div class="form-text">Assigned {{ $conversation->assigned_at->diffForHumans() }}{{ $conversation->assigner ? ' by '.$conversation->assigner->name : '' }}.</div>@endif
+                    </form>
+                    <form method="POST" action="{{ route('social.inbox.status.update', $conversation) }}">
+                        @csrf @method('PATCH')
+                        <input type="hidden" name="status" value="{{ $conversation->status->toggleTarget()->value }}">
+                        <button class="btn {{ $conversation->status->isArchived() ? 'btn-outline-success' : 'btn-outline-secondary' }} w-100">{{ $conversation->status->isArchived() ? 'Reopen conversation' : 'Archive conversation' }}</button>
+                    </form>
+                </div>
+            </div>
+        @endcan
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white fw-semibold">Customer identity</div>
             <div class="card-body">

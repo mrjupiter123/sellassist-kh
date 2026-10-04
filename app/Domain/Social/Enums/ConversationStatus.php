@@ -19,4 +19,14 @@ enum ConversationStatus: string
     {
         return $this !== self::Archived;
     }
+
+    public function isArchived(): bool
+    {
+        return $this === self::Archived;
+    }
+
+    public function toggleTarget(): self
+    {
+        return $this->isArchived() ? self::Open : self::Archived;
+    }
 }
