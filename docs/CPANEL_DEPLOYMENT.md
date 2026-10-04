@@ -35,6 +35,16 @@ TELEGRAM_BOT_TOKEN=
 TELEGRAM_WEBHOOK_SECRET=
 ```
 
+Optional seller-triggered AI suggestions require a server-side OpenAI project key:
+
+```dotenv
+SOCIAL_AI_EXTRACTION_ENABLED=true
+OPENAI_API_KEY=
+OPENAI_ORDER_EXTRACTION_MODEL=gpt-5.4-mini
+```
+
+Keep this disabled until the data-sharing boundary in [AI order suggestions](AI_ORDER_EXTRACTION.md) is accepted for the environment. Never expose the API key in the browser or source control.
+
 6. From cPanel Terminal, run from the project directory:
 
 ```bash

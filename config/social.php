@@ -11,4 +11,10 @@ return [
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),
         'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
     ],
+    'ai' => [
+        'enabled' => env('SOCIAL_AI_EXTRACTION_ENABLED', false),
+        'api_key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_ORDER_EXTRACTION_MODEL', 'gpt-5.4-mini'),
+        'base_url' => env('OPENAI_API_BASE_URL', 'https://api.openai.com/v1'),
+    ],
 ];

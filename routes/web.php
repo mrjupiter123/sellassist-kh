@@ -27,6 +27,7 @@ use App\Http\Controllers\SocialConversationController;
 use App\Http\Controllers\SocialConversationReadController;
 use App\Http\Controllers\SocialConversationStatusController;
 use App\Http\Controllers\SocialOrderController;
+use App\Http\Controllers\SocialOrderExtractionController;
 use App\Http\Controllers\SocialReplyController;
 use App\Http\Controllers\SocialReplyTemplateController;
 use App\Http\Controllers\UserController;
@@ -99,6 +100,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::post('/social/inbox/{conversation}/link-customer', [SocialContactController::class, 'link'])->middleware('permission:social.manage')->name('social.inbox.link-customer');
     Route::post('/social/inbox/{conversation}/customers', [SocialContactController::class, 'createCustomer'])->middleware('permission:social.manage')->name('social.inbox.customers.store');
     Route::post('/social/inbox/{conversation}/draft-order', [SocialOrderController::class, 'store'])->middleware('permission:social.manage')->name('social.inbox.draft-order.store');
+    Route::post('/social/inbox/{conversation}/order-extractions', [SocialOrderExtractionController::class, 'store'])->middleware('permission:social.extract')->name('social.inbox.order-extractions.store');
     Route::post('/social/inbox/{conversation}/replies', [SocialReplyController::class, 'store'])->middleware('permission:social.reply')->name('social.inbox.replies.store');
     Route::patch('/social/inbox/{conversation}/assignment', [SocialConversationAssignmentController::class, 'update'])->middleware('permission:social.manage')->name('social.inbox.assignment.update');
     Route::patch('/social/inbox/{conversation}/status', [SocialConversationStatusController::class, 'update'])->middleware('permission:social.manage')->name('social.inbox.status.update');

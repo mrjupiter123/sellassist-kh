@@ -23,7 +23,7 @@ class RolePermissionSeeder extends Seeder
         'users.view', 'users.manage',
         'delivery.view', 'delivery.create', 'delivery.update',
         'delivery.cod.reconcile', 'delivery.providers.manage',
-        'social.view', 'social.manage', 'social.reply', 'social.channels.manage',
+        'social.view', 'social.manage', 'social.reply', 'social.extract', 'social.channels.manage',
         'operations.view', 'operations.retry',
     ];
 
@@ -50,7 +50,7 @@ class RolePermissionSeeder extends Seeder
             'inventory.view', 'inventory.adjust',
             'returns.view', 'returns.create',
             'delivery.view', 'delivery.create', 'delivery.update',
-            'social.view', 'social.manage', 'social.reply',
+            'social.view', 'social.manage', 'social.reply', 'social.extract',
         ]);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

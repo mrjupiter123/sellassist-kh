@@ -9,6 +9,7 @@ use App\Domain\Payment\Enums\Currency;
 use App\Domain\Product\Models\Product;
 use App\Domain\Social\Actions\MarkSocialConversationRead;
 use App\Domain\Social\Enums\ConversationStatus;
+use App\Domain\Social\Enums\OrderExtractionStatus;
 use App\Domain\Social\Models\SocialConversation;
 use App\Domain\Social\Models\SocialReplyTemplate;
 use App\Models\User;
@@ -72,6 +73,8 @@ class SocialConversationController extends Controller
         $conversation->load([
             'channel', 'contact.customer', 'contact.suggestedCustomer',
             'messages', 'convertedOrder', 'assignee:id,uuid,name', 'assigner:id,uuid,name',
+            'latestOrderExtraction.items.product:id,name',
+            'latestOrderExtraction.items.variant:id,product_id,color,size',
         ]);
         $products = Product::query()
             ->where('active', true)
@@ -79,8 +82,31 @@ class SocialConversationController extends Controller
             ->orderBy('name')
             ->get();
 
+        $extraction = $conversation->latestOrderExtraction;
+        $readyExtraction = $extraction?->status === OrderExtractionStatus::Ready ? $extraction : null;
+        $suggestedItems = $readyExtraction?->items
+            ->filter(fn ($item): bool => $item->product_id !== null)
+            ->map(fn ($item): array => [
+                'product_id' => (string) $item->product_id,
+                'product_variant_id' => $item->product_variant_id === null ? '' : (string) $item->product_variant_id,
+                'quantity' => $item->quantity,
+                'discount' => '0',
+            ])->values()->all() ?? [];
+
         return view('social.conversations.show', [
             'conversation' => $conversation,
+            'latestExtraction' => $extraction,
+            'aiExtractionConfigured' => config('social.ai.enabled') && filled(config('social.ai.api_key')),
+            'suggestedOrderItems' => $suggestedItems,
+            'suggestedCustomer' => [
+                'name' => $readyExtraction?->customer_name,
+                'phone' => $readyExtraction?->phone,
+                'address' => $readyExtraction?->address,
+                'province' => $readyExtraction?->province,
+                'district' => $readyExtraction?->district,
+                'commune' => $readyExtraction?->commune,
+                'notes' => $readyExtraction?->notes,
+            ],
             'customers' => Customer::query()->orderBy('name')->get(['id', 'name', 'phone']),
             'currencies' => Currency::cases(),
             'assignees' => $this->assignees(),

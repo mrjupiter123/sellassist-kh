@@ -60,7 +60,7 @@
         @if ($conversation->convertedOrder)
             <div class="alert alert-success">Converted to <a href="{{ route('orders.show', $conversation->convertedOrder) }}">{{ $conversation->convertedOrder->order_number }}</a>. Inventory was not deducted because it is a draft.</div>
         @elseif ($conversation->contact->customer)
-            <div class="card shadow-sm" x-data="{ items: [{ product_id: '', product_variant_id: '', quantity: 1, discount: '0' }], catalog: {{ Illuminate\Support\Js::from($catalog) }}, product(row) { return this.catalog.find(p => String(p.id) === String(row.product_id)); }, add() { this.items.push({ product_id: '', product_variant_id: '', quantity: 1, discount: '0' }); } }">
+            <div class="card shadow-sm" x-data="{ items: {{ Illuminate\Support\Js::from($suggestedOrderItems ?: [['product_id' => '', 'product_variant_id' => '', 'quantity' => 1, 'discount' => '0']]) }}, catalog: {{ Illuminate\Support\Js::from($catalog) }}, product(row) { return this.catalog.find(p => String(p.id) === String(row.product_id)); }, add() { this.items.push({ product_id: '', product_variant_id: '', quantity: 1, discount: '0' }); } }">
                 <div class="card-header bg-white"><strong>Create reviewed draft order</strong><div class="small text-muted">Prices are resolved from the product catalog on the server.</div></div>
                 <form method="POST" action="{{ route('social.inbox.draft-order.store', $conversation) }}" class="card-body">
                     @csrf
@@ -79,7 +79,7 @@
                         </div>
                     </template>
                     <button type="button" class="btn btn-outline-secondary btn-sm mb-3" @click="add()">Add product</button>
-                    <div class="mb-3"><label class="form-label">Seller notes</label><textarea class="form-control" name="notes" rows="3"></textarea></div>
+                    <div class="mb-3"><label class="form-label">Seller notes</label><textarea class="form-control" name="notes" rows="3">{{ old('notes', $suggestedCustomer['notes']) }}</textarea></div>
                     <button class="btn btn-primary">Create draft for review</button>
                 </form>
             </div>
@@ -106,6 +106,54 @@
             </div>
         @endcan
         <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center gap-2">
+                <strong>AI order suggestions</strong>
+                @if ($latestExtraction)<span class="badge text-bg-{{ $latestExtraction->status->value === 'ready' ? 'success' : ($latestExtraction->status->value === 'failed' ? 'danger' : 'secondary') }}">{{ $latestExtraction->status->label() }}</span>@endif
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">Only when you click generate, up to 40 inbound customer messages and limited active catalog identifiers are sent to OpenAI. Prices, stock, payments, and credentials are not sent. Results are suggestions only and never create or confirm an order.</p>
+                @if (! $aiExtractionConfigured)
+                    <div class="alert alert-warning py-2 mb-0">AI suggestions are disabled until the server environment is configured.</div>
+                @elseif ($conversation->status->value !== 'open' || $conversation->converted_order_id)
+                    <div class="alert alert-secondary py-2 mb-0">Suggestions are only available for open, unconverted conversations.</div>
+                @else
+                    @can('social.extract')
+                        <form method="POST" action="{{ route('social.inbox.order-extractions.store', $conversation) }}" class="mb-3">
+                            @csrf
+                            <button class="btn btn-outline-primary" @disabled($latestExtraction?->status->isPending())>{{ $latestExtraction ? 'Generate from latest messages' : 'Generate suggestions' }}</button>
+                        </form>
+                    @endcan
+                @endif
+
+                @if ($latestExtraction?->status->isPending())
+                    <div class="alert alert-info py-2 mb-0">The request is waiting for the integrations queue. Refresh this page shortly.</div>
+                @elseif ($latestExtraction?->status->value === 'failed')
+                    <div class="alert alert-danger py-2 mb-0">{{ $latestExtraction->error }}</div>
+                @elseif ($latestExtraction?->status->value === 'ready')
+                    <div class="small mb-3">Confidence: {{ number_format((float) $latestExtraction->overall_confidence * 100) }}% · {{ $latestExtraction->model }}</div>
+                    @if (collect($suggestedCustomer)->filter()->isNotEmpty())
+                        <dl class="row small mb-3">
+                            @foreach (['name' => 'Name', 'phone' => 'Phone', 'address' => 'Address', 'commune' => 'Commune', 'district' => 'District', 'province' => 'Province'] as $key => $label)
+                                @if ($suggestedCustomer[$key])<dt class="col-4">{{ $label }}</dt><dd class="col-8">{{ $suggestedCustomer[$key] }}</dd>@endif
+                            @endforeach
+                        </dl>
+                    @endif
+                    <div class="list-group list-group-flush border rounded">
+                        @forelse ($latestExtraction->items as $item)
+                            <div class="list-group-item small">
+                                <div class="fw-semibold">{{ $item->product?->name ?? $item->product_query }} × {{ $item->quantity }}</div>
+                                <div class="text-muted">{{ $item->variant?->display_name ?? $item->variant_query }} · {{ number_format((float) $item->confidence * 100) }}% confidence</div>
+                                @if (! $item->product)<div class="text-warning">Catalog match unresolved—select it manually.</div>@endif
+                            </div>
+                        @empty
+                            <div class="list-group-item text-muted small">No product lines were found.</div>
+                        @endforelse
+                    </div>
+                    <div class="form-text mt-2">Matched products are prefilled in the draft form. Review every field before submitting.</div>
+                @endif
+            </div>
+        </div>
+        <div class="card shadow-sm mb-4">
             <div class="card-header bg-white fw-semibold">Customer identity</div>
             <div class="card-body">
                 @if ($conversation->contact->customer)
@@ -116,7 +164,7 @@
                     @can('social.manage')
                         <form method="POST" action="{{ route('social.inbox.link-customer', $conversation) }}" class="mb-4">@csrf<label class="form-label">Link existing customer</label><div class="input-group"><select class="form-select" name="customer_id" required><option value="">Choose customer</option>@foreach ($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name }} {{ $customer->phone ? '— '.$customer->phone : '' }}</option>@endforeach</select><button class="btn btn-outline-primary">Link</button></div></form>
                         <hr>
-                        <form method="POST" action="{{ route('social.inbox.customers.store', $conversation) }}" class="vstack gap-2">@csrf<h2 class="h6">Create new customer</h2><input class="form-control" name="name" value="{{ $conversation->contact->display_name }}" placeholder="Name / ឈ្មោះ" required><input class="form-control" name="phone" placeholder="Phone / លេខទូរស័ព្ទ"><textarea class="form-control" name="address" placeholder="Address / អាសយដ្ឋាន"></textarea><div class="row g-2"><div class="col"><input class="form-control" name="commune" placeholder="Commune / ឃុំ-សង្កាត់"></div><div class="col"><input class="form-control" name="district" placeholder="District / ស្រុក-ខណ្ឌ"></div></div><input class="form-control" name="province" placeholder="Province / ខេត្ត-រាជធានី"><button class="btn btn-primary">Create and link</button></form>
+                        <form method="POST" action="{{ route('social.inbox.customers.store', $conversation) }}" class="vstack gap-2">@csrf<h2 class="h6">Create new customer</h2><input class="form-control" name="name" value="{{ old('name', $suggestedCustomer['name'] ?: $conversation->contact->display_name) }}" placeholder="Name / ឈ្មោះ" required><input class="form-control" name="phone" value="{{ old('phone', $suggestedCustomer['phone']) }}" placeholder="Phone / លេខទូរស័ព្ទ"><textarea class="form-control" name="address" placeholder="Address / អាសយដ្ឋាន">{{ old('address', $suggestedCustomer['address']) }}</textarea><div class="row g-2"><div class="col"><input class="form-control" name="commune" value="{{ old('commune', $suggestedCustomer['commune']) }}" placeholder="Commune / ឃុំ-សង្កាត់"></div><div class="col"><input class="form-control" name="district" value="{{ old('district', $suggestedCustomer['district']) }}" placeholder="District / ស្រុក-ខណ្ឌ"></div></div><input class="form-control" name="province" value="{{ old('province', $suggestedCustomer['province']) }}" placeholder="Province / ខេត្ត-រាជធានី"><button class="btn btn-primary">Create and link</button></form>
                     @endcan
                 @endif
             </div>

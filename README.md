@@ -1,6 +1,6 @@
 # SellAssist KH
 
-SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, delivery workflow, COD reconciliation, secure Facebook Messenger and Telegram order intake, assigned inbox workflows, per-user unread tracking, queued staff replies and encrypted reply templates, permissions, integration health, and a daily dashboard. AI extraction remains intentionally out of scope.
+SellAssist KH is a Laravel order-management application for Cambodian online sellers. The current foundation covers customers, products and variants, stock auditing, orders, payments, controlled pre-confirmation amendments, product returns, refunds, administrator-managed staff accounts, order activity history, bilingual receipts, delivery workflow, COD reconciliation, secure Facebook Messenger and Telegram order intake, assigned inbox workflows, per-user unread tracking, queued staff replies, encrypted reply templates, seller-triggered AI order suggestions, permissions, integration health, and a daily dashboard.
 
 ## Requirements
 
@@ -86,6 +86,8 @@ Authorized staff can manually reply from a social conversation. Replies are encr
 
 The social inbox supports staff assignment, per-user unread filtering, controlled archive/reopen transitions, and encrypted reusable reply templates. Viewing a conversation marks it read only for the current user; a later inbound message makes it unread again. Templates populate the reviewed reply form but never send automatically.
 
+Authorized sellers may explicitly request an AI order suggestion for an open conversation. The queued extraction sends at most 40 inbound text messages and limited active catalog identifiers to OpenAI with response storage disabled. It does not send prices, costs, stock, payments, or credentials. Returned customer and item fields are encrypted locally, catalog references are revalidated server-side, and the seller must review and submit the existing forms. AI output never links customers or creates, confirms, or mutates orders. See [AI order suggestions](docs/AI_ORDER_EXTRACTION.md).
+
 ## Tests and formatting
 
 Tests use PHPUnit with an in-memory SQLite database:
@@ -111,7 +113,7 @@ php artisan queue:work --queue=integrations,default --tries=3 --timeout=60
 
 No Laravel scheduler entry is currently required. On cPanel without a persistent worker, invoke `queue:work --queue=integrations,default --stop-when-empty` every minute through cron.
 
-Messenger and Telegram webhooks use the same `integrations` queue. Administrators can monitor pending/failed jobs, recent delivery failures, and delivery/social webhook health under **Operations**.
+Messenger and Telegram webhooks, social replies, and AI order suggestions use the same `integrations` queue. Administrators can monitor pending/failed jobs, recent delivery failures, and delivery/social webhook health under **Operations**.
 
 ## Stabilization runbooks
 
@@ -143,4 +145,3 @@ older index-length limits. If a migration reports error 1071 (`Specified key was
 too long`), deploy the latest `AppServiceProvider` and database configuration,
 clear cached configuration, and rerun `php artisan migrate --force`. Do not use
 `migrate:fresh` on a database that contains data.
-

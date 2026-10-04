@@ -48,6 +48,10 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Social conversation assignment and archive/reopen changes go through their Social-domain actions; assignees must be active users with inbox access.
 - Social unread state is per user and is based on the latest inbound message, never on outbound replies.
 - Reply templates are encrypted reusable text only. Selecting a template must never auto-send it or trigger any order workflow.
+- AI extraction is an explicit seller action only. Never run it automatically for incoming messages.
+- AI requests may include only the approved inbound-message snapshot and limited active catalog identifiers. Use `store: false`; never send prices, costs, inventory, payments, credentials, or unrelated customer history.
+- Treat every AI field and catalog reference as untrusted. Revalidate product and variant references server-side, encrypt extracted customer fields, and present results only as editable suggestions.
+- AI suggestions must never link customers or create, confirm, amend, pay, ship, or otherwise mutate an order without the existing seller-reviewed workflow.
 
 ## Development practices
 
@@ -63,5 +67,4 @@ This is SellMate KH, branded in the application as SellAssist KH.
 
 ## Scope
 
-The implemented core covers local authentication, roles and permissions, customers, products and variants, inventory movements, orders, controlled amendments, payments, returns, refunds, delivery workflow, COD reconciliation, an L192 delivery adapter, secure delivery webhooks, Facebook Messenger and Telegram inbox-to-draft intake, integration health, and the operational dashboard. Do not add AI parsing, payment gateways, additional social/courier APIs, multi-tenancy, subscriptions, WebSockets, or microservices unless a later phase explicitly requests them.
-
+The implemented core covers local authentication, roles and permissions, customers, products and variants, inventory movements, orders, controlled amendments, payments, returns, refunds, delivery workflow, COD reconciliation, an L192 delivery adapter, secure delivery webhooks, Facebook Messenger and Telegram inbox-to-draft intake, seller-triggered AI order suggestions, integration health, and the operational dashboard. Do not add automatic AI workflows, payment gateways, additional social/courier APIs, multi-tenancy, subscriptions, WebSockets, or microservices unless a later phase explicitly requests them.

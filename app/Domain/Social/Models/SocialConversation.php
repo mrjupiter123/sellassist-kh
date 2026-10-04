@@ -11,6 +11,7 @@ use App\Support\HasPublicUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SocialConversation extends Model
 {
@@ -72,6 +73,16 @@ class SocialConversation extends Model
     public function readReceipts(): HasMany
     {
         return $this->hasMany(SocialConversationRead::class);
+    }
+
+    public function orderExtractions(): HasMany
+    {
+        return $this->hasMany(SocialOrderExtraction::class);
+    }
+
+    public function latestOrderExtraction(): HasOne
+    {
+        return $this->hasOne(SocialOrderExtraction::class)->latestOfMany();
     }
 
     public function isUnreadFor(User $user): bool
