@@ -17,7 +17,7 @@ class SocialConversationController extends Controller
     public function index(Request $request): View
     {
         $conversations = SocialConversation::query()
-            ->with(['channel:id,uuid,name', 'contact.customer:id,uuid,name', 'contact.suggestedCustomer:id,uuid,name'])
+            ->with(['channel:id,uuid,platform,name', 'contact.customer:id,uuid,name', 'contact.suggestedCustomer:id,uuid,name'])
             ->withCount('messages')
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->toString()))
             ->when($request->filled('search'), function ($query) use ($request): void {

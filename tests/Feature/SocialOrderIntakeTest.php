@@ -120,6 +120,35 @@ class SocialOrderIntakeTest extends TestCase
         $this->assertSame($order->id, $conversation->refresh()->converted_order_id);
     }
 
+    public function test_authorized_user_can_render_inbox_with_channel_platform_label(): void
+    {
+        $user = $this->userWithPermissions(['social.view']);
+        $channel = SocialChannel::query()->create([
+            'platform' => SocialPlatform::FacebookMessenger,
+            'name' => 'Main Page',
+            'external_id' => 'page-100',
+            'active' => true,
+        ]);
+        $contact = SocialContact::query()->create([
+            'social_channel_id' => $channel->id,
+            'external_id' => 'customer-100',
+            'first_seen_at' => now(),
+            'last_seen_at' => now(),
+        ]);
+        SocialConversation::query()->create([
+            'social_channel_id' => $channel->id,
+            'social_contact_id' => $contact->id,
+            'status' => 'open',
+            'last_message_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('social.inbox.index'))
+            ->assertOk()
+            ->assertSeeText('Facebook Messenger user customer-100')
+            ->assertSeeText('Main Page');
+    }
+
     public function test_user_without_social_permission_cannot_open_inbox(): void
     {
         $user = $this->userWithPermissions(['orders.view']);
