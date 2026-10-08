@@ -103,7 +103,7 @@ class SocialAiEvaluationTest extends TestCase
             ]);
         }
 
-        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $profile))
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $profile), ['reason' => 'Attempt before approval.'])
             ->assertSessionHas('error', 'Approve a qualifying synthetic evaluation run before activating this profile.');
         $this->assertFalse($profile->refresh()->active);
 
@@ -118,7 +118,7 @@ class SocialAiEvaluationTest extends TestCase
         $this->assertSame($run->id, $profile->approval_evaluation_run_id);
         $this->assertSame('Validated against the initial frozen synthetic dataset.', $profile->approval_release_notes);
 
-        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $profile))->assertRedirect();
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $profile), ['reason' => 'Activate evaluated release.'])->assertRedirect();
         $this->assertTrue($profile->refresh()->active);
     }
 

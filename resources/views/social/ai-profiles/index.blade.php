@@ -8,7 +8,7 @@
     <div class="d-flex gap-2"><a class="btn btn-outline-primary" href="{{ route('social.ai-evaluations.index') }}">Run evaluations</a><a class="btn btn-outline-secondary" href="{{ route('operations.index') }}">View quality dashboard</a></div>
 </div>
 
-<div class="alert alert-info">New profiles affect only future extraction requests. Existing and queued extractions preserve their original profile, model, prompt version, and instructions hash. Reactivating an older profile is the safe rollback mechanism.</div>
+<div class="alert alert-info">New profiles affect only future extraction requests. Existing and queued extractions preserve their original profile, model, prompt version, and instructions hash. Every activation and rollback requires a reason and is retained in release history.</div>
 
 <div class="row g-4">
     <div class="col-xl-8">
@@ -23,7 +23,7 @@
                         <td>{{ $profile->average_confidence === null ? '—' : number_format((float) $profile->average_confidence * 100, 1).'%' }}</td>
                         <td>{{ number_format($profile->total_tokens ?? 0) }}</td>
                         <td><div>{{ $profile->created_at->format('d M Y') }}</div><small class="text-muted">{{ $profile->creator?->name ?? 'Former user' }}</small></td>
-                        <td>@if ($profile->active)<small class="text-muted">{{ $profile->activated_at?->diffForHumans() }}</small>@elseif ($profile->activation_eligible)<form method="POST" action="{{ route('social.ai-profiles.activate', $profile) }}">@csrf<button class="btn btn-outline-primary btn-sm">Activate</button></form>@else<a class="btn btn-outline-secondary btn-sm" href="{{ route('social.ai-evaluations.index') }}">Evaluate first</a>@endif</td>
+                        <td style="min-width:260px">@if ($profile->active)<small class="text-muted">Active since {{ $profile->activated_at?->diffForHumans() }}</small>@elseif ($profile->activation_eligible)<form method="POST" action="{{ route('social.ai-profiles.activate', $profile) }}">@csrf<div class="input-group input-group-sm"><input class="form-control" name="reason" required maxlength="2000" placeholder="Release or rollback reason"><button class="btn btn-outline-primary">{{ $profile->releases_count > 0 ? 'Roll back' : 'Activate' }}</button></div></form>@else<a class="btn btn-outline-secondary btn-sm" href="{{ route('social.ai-evaluations.index') }}">Evaluate first</a>@endif</td>
                     </tr>
                 @empty
                     <tr><td colspan="7" class="text-center text-muted py-4">No managed profiles yet. Until one is activated, the environment model and built-in prompt are used.</td></tr>
@@ -45,5 +45,24 @@
             <div class="card-footer bg-white text-end"><button class="btn btn-primary">Create version</button></div>
         </form>
     </div>
+</div>
+
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-white fw-semibold">Profile release history</div>
+    <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Released</th><th>Type</th><th>Profile</th><th>Previous</th><th>Approved score</th><th>Reason</th><th>Administrator</th></tr></thead><tbody>
+        @forelse ($releases as $release)
+            <tr>
+                <td>{{ $release->released_at->format('d M Y H:i') }}</td>
+                <td><span class="badge text-bg-{{ $release->type->value === 'rollback' ? 'warning' : 'primary' }}">{{ $release->type->label() }}</span></td>
+                <td><strong>{{ $release->profile->name }} {{ $release->profile->version }}</strong><div class="small text-muted">{{ $release->profile->model }}</div></td>
+                <td>{{ $release->previousProfile ? $release->previousProfile->name.' '.$release->previousProfile->version : 'Built-in environment profile' }}</td>
+                <td>{{ $release->approvalRun?->score === null ? 'Legacy approval' : number_format((float) $release->approvalRun->score * 100, 1).'%' }}</td>
+                <td class="text-wrap" style="min-width:220px">{{ $release->reason }}</td>
+                <td>{{ $release->releaser?->name ?? 'Former user' }}</td>
+            </tr>
+        @empty
+            <tr><td colspan="7" class="text-center text-muted py-4">No managed profile releases yet.</td></tr>
+        @endforelse
+    </tbody></table></div>
 </div>
 @endsection

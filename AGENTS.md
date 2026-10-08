@@ -60,6 +60,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Evaluation dataset versions are immutable once frozen. New cases require a new dataset version; profile comparisons and regression gates must use the same frozen version.
 - A profile requires an explicitly approved qualifying evaluation run before activation. Approval and activation remain separate administrator actions; provider output must never approve or activate a profile automatically.
 - Profile approval requires release notes and must be blocked when the candidate regresses against an approved active-profile baseline on the same dataset.
+- Profile activation and rollback go through `ActivateAiExtractionProfile`, require an administrator reason, and create an immutable release-history record in the same transaction.
 
 ## Development practices
 

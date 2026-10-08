@@ -87,7 +87,7 @@ Administrators with `social.ai.manage` can create profile versions under **AI Pr
 
 The permanent safety instructions are always prepended. Profile guidance cannot remove the requirements to ignore customer-supplied instructions, avoid invented facts, use local catalog references, and return suggestions for seller review only.
 
-Profiles have no edit or delete workflow. Improvements are new versions. Activating a new version changes only future extraction requests, while reactivating an older version is the rollback mechanism. Each extraction records the profile reference, model, prompt version, and SHA-256 hash of its effective instructions. Historical and already queued extractions are never rewritten.
+Profiles have no edit or delete workflow. Improvements are new versions. Activating a new version changes only future extraction requests, while reactivating an older version is the rollback mechanism. Every activation and rollback requires an administrator reason and creates an immutable release-history record containing the prior profile and approved evaluation run. Each extraction records the profile reference, model, prompt version, and SHA-256 hash of its effective instructions. Historical and already queued extractions are never rewritten.
 
 Changing the active profile changes the extraction idempotency identity, so the same conversation can be evaluated once under each distinct profile version. API access is still checked only when the queued request runs; administrators should test a new model/version on staging before broader activation.
 

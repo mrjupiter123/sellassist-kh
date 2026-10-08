@@ -10,6 +10,7 @@ use App\Domain\Social\Enums\MessageType;
 use App\Domain\Social\Enums\OrderExtractionStatus;
 use App\Domain\Social\Enums\SocialPlatform;
 use App\Domain\Social\Models\SocialAiExtractionProfile;
+use App\Domain\Social\Models\SocialAiProfileRelease;
 use App\Domain\Social\Models\SocialChannel;
 use App\Domain\Social\Models\SocialContact;
 use App\Domain\Social\Models\SocialConversation;
@@ -52,10 +53,13 @@ class SocialAiExtractionProfileTest extends TestCase
         $this->assertFalse($first->active);
         $this->assertFalse($first->activation_eligible);
         $this->assertSame($admin->id, $first->created_by);
-        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first))
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first), ['reason' => 'Initial release.'])
             ->assertSessionHas('error', 'Approve a qualifying synthetic evaluation run before activating this profile.');
         $first->update(['activation_eligible' => true]);
-        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first))->assertRedirect();
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first))
+            ->assertSessionHasErrors('reason');
+        $this->assertDatabaseCount('social_ai_profile_releases', 0);
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first), ['reason' => 'Initial approved release.'])->assertRedirect();
         $this->assertTrue($first->refresh()->active);
 
         $this->actingAs($admin)->post(route('social.ai-profiles.store'), [
@@ -69,14 +73,19 @@ class SocialAiExtractionProfileTest extends TestCase
         $this->assertTrue($first->refresh()->active);
         $this->assertFalse($second->active);
         $second->update(['activation_eligible' => true]);
-        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $second))->assertRedirect();
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $second), ['reason' => 'Release improved product matching.'])->assertRedirect();
         $this->assertFalse($first->refresh()->active);
         $this->assertTrue($second->refresh()->active);
 
-        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first))->assertRedirect();
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first), ['reason' => 'Rollback after production review.'])->assertRedirect();
         $this->assertTrue($first->refresh()->active);
         $this->assertFalse($second->refresh()->active);
         $this->assertSame(1, SocialAiExtractionProfile::query()->where('active', true)->count());
+        $this->assertDatabaseCount('social_ai_profile_releases', 3);
+        $rollback = SocialAiProfileRelease::query()->latest('id')->firstOrFail();
+        $this->assertSame('rollback', $rollback->type->value);
+        $this->assertSame($second->id, $rollback->previous_profile_id);
+        $this->assertSame('Rollback after production review.', $rollback->reason);
 
         $this->actingAs($admin)->post(route('social.ai-profiles.store'), [
             'name' => 'Khmer orders',
@@ -111,7 +120,7 @@ class SocialAiExtractionProfileTest extends TestCase
         $this->assertSame(app(AiExtractionPrompt::class)->hash($first), $firstExtraction->instructions_hash);
 
         $second = $this->profile($admin->id, 'v2', 'model-one', 'First approved guidance.');
-        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $second))->assertRedirect();
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $second), ['reason' => 'Activate next approved snapshot.'])->assertRedirect();
         $this->actingAs($seller)->post(route('social.inbox.order-extractions.store', $conversation))->assertRedirect();
 
         $this->assertDatabaseCount('social_order_extractions', 2);

@@ -8,6 +8,7 @@ use App\Domain\Social\Actions\ActivateAiExtractionProfile;
 use App\Domain\Social\Actions\CreateAiExtractionProfile;
 use App\Domain\Social\Enums\OrderExtractionStatus;
 use App\Domain\Social\Models\SocialAiExtractionProfile;
+use App\Domain\Social\Models\SocialAiProfileRelease;
 use App\Http\Requests\Social\ActivateAiExtractionProfileRequest;
 use App\Http\Requests\Social\StoreAiExtractionProfileRequest;
 use Illuminate\Http\RedirectResponse;
@@ -20,6 +21,7 @@ class SocialAiExtractionProfileController extends Controller
         $profiles = SocialAiExtractionProfile::query()
             ->with(['creator:id,uuid,name', 'activator:id,uuid,name', 'approver:id,uuid,name', 'approvalRun:id,uuid,score'])
             ->withCount([
+                'releases',
                 'extractions',
                 'extractions as ready_extractions_count' => fn ($query) => $query->where('status', OrderExtractionStatus::Ready),
                 'extractions as failed_extractions_count' => fn ($query) => $query->where('status', OrderExtractionStatus::Failed),
@@ -29,7 +31,18 @@ class SocialAiExtractionProfileController extends Controller
             ->latest('created_at')
             ->get();
 
-        return view('social.ai-profiles.index', compact('profiles'));
+        $releases = SocialAiProfileRelease::query()
+            ->with([
+                'profile:id,uuid,name,version,model',
+                'previousProfile:id,uuid,name,version',
+                'approvalRun:id,uuid,score',
+                'releaser:id,uuid,name',
+            ])
+            ->latest('released_at')
+            ->limit(30)
+            ->get();
+
+        return view('social.ai-profiles.index', compact('profiles', 'releases'));
     }
 
     public function store(StoreAiExtractionProfileRequest $request, CreateAiExtractionProfile $action): RedirectResponse
@@ -45,7 +58,7 @@ class SocialAiExtractionProfileController extends Controller
         SocialAiExtractionProfile $profile,
         ActivateAiExtractionProfile $action,
     ): RedirectResponse {
-        $action->execute($profile, $request->user());
+        $action->execute($profile, $request->user(), $request->string('reason')->toString());
 
         return redirect()->route('social.ai-profiles.index')
             ->with('success', "AI extraction profile {$profile->name} {$profile->version} activated.");

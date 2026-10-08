@@ -52,6 +52,11 @@ class SocialAiExtractionProfile extends Model
         return $this->hasMany(SocialAiEvaluationRun::class, 'social_ai_extraction_profile_id');
     }
 
+    public function releases(): HasMany
+    {
+        return $this->hasMany(SocialAiProfileRelease::class, 'social_ai_extraction_profile_id');
+    }
+
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
