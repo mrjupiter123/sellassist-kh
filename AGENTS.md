@@ -62,6 +62,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Profile approval requires release notes and must be blocked when the candidate regresses against an approved active-profile baseline on the same dataset.
 - Profile activation and rollback go through `ActivateAiExtractionProfile`, require an administrator reason, and create an immutable release-history record in the same transaction.
 - Post-release monitoring uses aggregate extraction status, confidence, token, and seller-review metrics only. Degradation may recommend manual rollback review but must never activate or roll back a profile automatically.
+- Scheduled degradation alerts are database notifications for active AI administrators. Deduplicate unchanged degradation reasons, never include customer content, and keep alert delivery separate from the manual rollback action.
 
 ## Development practices
 

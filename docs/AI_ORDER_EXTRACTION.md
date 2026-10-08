@@ -67,6 +67,8 @@ php artisan queue:work --queue=integrations,default --tries=3 --timeout=240
 
 On shared cPanel hosting, the existing once-per-minute `--stop-when-empty` cron strategy is sufficient.
 
+The hourly release-degradation monitor is registered with Laravel's scheduler. Configure `php artisan schedule:run` once per minute on cPanel. A degraded release creates one database notification for each active administrator with `social.ai.manage`; the same set of degradation reasons is deduplicated until the condition resolves or materially changes. Notifications are advisory and never execute rollback.
+
 ## Operational flow
 
 1. A seller with `social.extract` opens an unconverted conversation.

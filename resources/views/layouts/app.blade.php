@@ -29,6 +29,10 @@
                     @can('users.view')<li class="nav-item"><a class="nav-link" href="{{ route('users.index') }}">Users</a></li>@endcan
                     @can('operations.view')<li class="nav-item"><a class="nav-link" href="{{ route('operations.index') }}">Operations</a></li>@endcan
                 </ul>
+                <a class="btn btn-outline-secondary btn-sm me-3 position-relative" href="{{ route('notifications.index') }}" aria-label="Notifications">
+                    Alerts
+                    @if (($unreadNotificationCount = auth()->user()->unreadNotifications()->count()) > 0)<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger">{{ $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount }}</span>@endif
+                </a>
                 <span class="navbar-text me-3">{{ auth()->user()->name }}</span>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf

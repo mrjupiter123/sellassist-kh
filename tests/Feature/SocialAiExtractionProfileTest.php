@@ -229,6 +229,25 @@ class SocialAiExtractionProfileTest extends TestCase
             ->assertSeeText('Average ready-result confidence decreased beyond the configured threshold.')
             ->assertSeeText('Seller-reviewed usefulness decreased beyond the configured threshold.')
             ->assertDontSeeText('Profile Test Customer');
+
+        $this->artisan('social:ai:monitor-releases')->assertSuccessful();
+        $this->assertDatabaseCount('notifications', 1);
+        $this->assertDatabaseHas('social_ai_profile_release_alerts', [
+            'social_ai_profile_release_id' => $release->id,
+            'status' => 'degraded',
+        ]);
+
+        $this->artisan('social:ai:monitor-releases')->assertSuccessful();
+        $this->assertDatabaseCount('notifications', 1);
+
+        $notification = $admin->notifications()->sole();
+        $this->actingAs($admin)->get(route('notifications.index'))
+            ->assertOk()
+            ->assertSeeText('AI release degradation detected')
+            ->assertSeeText('Manual rollback review is recommended')
+            ->assertDontSeeText('Profile Test Customer');
+        $this->actingAs($admin)->post(route('notifications.read', $notification->id))->assertRedirect();
+        $this->assertNotNull($notification->fresh()->read_at);
     }
 
     private function profile(int $userId, string $version, string $model, string $instructions, bool $active = false): SocialAiExtractionProfile
