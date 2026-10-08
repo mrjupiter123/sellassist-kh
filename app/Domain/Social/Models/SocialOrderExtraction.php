@@ -10,6 +10,7 @@ use App\Support\HasPublicUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SocialOrderExtraction extends Model
 {
@@ -19,7 +20,7 @@ class SocialOrderExtraction extends Model
         'social_conversation_id', 'status', 'provider', 'model', 'input_hash', 'message_count',
         'source_message_ids', 'customer_name', 'phone', 'address', 'province', 'district',
         'commune', 'notes', 'overall_confidence', 'provider_response_id', 'result_payload',
-        'error', 'requested_by', 'processed_at',
+        'input_tokens', 'output_tokens', 'total_tokens', 'error', 'requested_by', 'processed_at',
     ];
 
     protected function casts(): array
@@ -36,6 +37,9 @@ class SocialOrderExtraction extends Model
             'commune' => 'encrypted',
             'notes' => 'encrypted',
             'overall_confidence' => 'decimal:4',
+            'input_tokens' => 'integer',
+            'output_tokens' => 'integer',
+            'total_tokens' => 'integer',
             'result_payload' => 'encrypted:array',
             'processed_at' => 'datetime',
         ];
@@ -54,5 +58,10 @@ class SocialOrderExtraction extends Model
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(SocialOrderExtractionReview::class);
     }
 }

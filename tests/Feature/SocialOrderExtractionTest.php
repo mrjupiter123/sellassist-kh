@@ -9,6 +9,7 @@ use App\Domain\Product\Models\ProductVariant;
 use App\Domain\Social\Enums\ConversationStatus;
 use App\Domain\Social\Enums\MessageDirection;
 use App\Domain\Social\Enums\MessageType;
+use App\Domain\Social\Enums\OrderExtractionReviewVerdict;
 use App\Domain\Social\Enums\OrderExtractionStatus;
 use App\Domain\Social\Enums\SocialPlatform;
 use App\Domain\Social\Models\SocialChannel;
@@ -105,6 +106,7 @@ class SocialOrderExtractionTest extends TestCase
 
         Http::fake(['api.openai.com/*' => Http::response([
             'id' => 'resp_test_123',
+            'usage' => ['input_tokens' => 320, 'output_tokens' => 95, 'total_tokens' => 415],
             'output' => [[
                 'type' => 'message',
                 'content' => [[
@@ -146,6 +148,9 @@ class SocialOrderExtractionTest extends TestCase
         $extraction->refresh()->load('items');
         $this->assertSame(OrderExtractionStatus::Ready, $extraction->status);
         $this->assertSame('Dara', $extraction->customer_name);
+        $this->assertSame(320, $extraction->input_tokens);
+        $this->assertSame(95, $extraction->output_tokens);
+        $this->assertSame(415, $extraction->total_tokens);
         $this->assertSame($product->id, $extraction->items[0]->product_id);
         $this->assertSame($variant->id, $extraction->items[0]->product_variant_id);
         $this->assertSame($product->id, $extraction->items[1]->product_id);
@@ -199,6 +204,120 @@ class SocialOrderExtractionTest extends TestCase
         $this->assertSame(OrderExtractionStatus::Failed, $extraction->status);
         $this->assertStringNotContainsString('test-key-never-sent-to-storage', (string) $extraction->error);
         $this->assertDatabaseCount('social_order_extraction_items', 0);
+    }
+
+    public function test_synthetic_khmer_customer_fields_round_trip_through_encrypted_suggestion(): void
+    {
+        $user = $this->userWithPermissions(['social.extract']);
+        $conversation = $this->conversationWithMessage('ខ្ញុំឈ្មោះ ដារ៉ា លេខ 012345678 នៅភ្នំពេញ');
+        $message = $conversation->messages()->sole();
+        $extraction = $conversation->orderExtractions()->create([
+            'status' => OrderExtractionStatus::Queued,
+            'provider' => 'openai',
+            'model' => 'gpt-5.4-mini',
+            'input_hash' => hash('sha256', 'khmer-fixture'),
+            'message_count' => 1,
+            'source_message_ids' => [$message->id],
+            'requested_by' => $user->id,
+        ]);
+        Http::fake(['api.openai.com/*' => Http::response([
+            'id' => 'resp_khmer_fixture',
+            'usage' => ['input_tokens' => 100, 'output_tokens' => 40, 'total_tokens' => 140],
+            'output' => [[
+                'type' => 'message',
+                'content' => [[
+                    'type' => 'output_text',
+                    'text' => json_encode([
+                        'customer_name' => 'ដារ៉ា',
+                        'phone' => '012345678',
+                        'address' => 'ភ្នំពេញ',
+                        'province' => 'ភ្នំពេញ',
+                        'district' => null,
+                        'commune' => null,
+                        'notes' => null,
+                        'overall_confidence' => 0.8,
+                        'items' => [],
+                    ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+                ]],
+            ]],
+        ], 200)]);
+
+        app()->call([new ExtractSocialOrderSuggestion($extraction->id), 'handle']);
+
+        $extraction->refresh();
+        $this->assertSame('ដារ៉ា', $extraction->customer_name);
+        $this->assertSame('ភ្នំពេញ', $extraction->address);
+        $this->assertSame(140, $extraction->total_tokens);
+        $this->assertStringNotContainsString('ដារ៉ា', (string) $extraction->getRawOriginal('customer_name'));
+    }
+
+    public function test_authorized_seller_can_create_and_update_encrypted_quality_review(): void
+    {
+        $seller = $this->userWithPermissions(['social.extract']);
+        $conversation = $this->conversationWithMessage('Two shirts');
+        $message = $conversation->messages()->sole();
+        $extraction = $conversation->orderExtractions()->create([
+            'status' => OrderExtractionStatus::Ready,
+            'provider' => 'openai',
+            'model' => 'gpt-5.4-mini',
+            'input_hash' => hash('sha256', 'review'),
+            'message_count' => 1,
+            'source_message_ids' => [$message->id],
+            'overall_confidence' => 0.75,
+            'processed_at' => now(),
+            'requested_by' => $seller->id,
+        ]);
+
+        $this->actingAs($seller)->put(route('social.inbox.order-extractions.review', [$conversation, $extraction]), [
+            'verdict' => OrderExtractionReviewVerdict::Corrected->value,
+            'customer_fields_correct' => '1',
+            'item_matches_correct' => '0',
+            'quantities_correct' => '0',
+            'notes' => 'Wrong size and quantity.',
+        ])->assertRedirect(route('social.inbox.show', $conversation))->assertSessionHas('success');
+
+        $review = $extraction->review()->sole();
+        $this->assertSame(OrderExtractionReviewVerdict::Corrected, $review->verdict);
+        $this->assertTrue($review->customer_fields_correct);
+        $this->assertFalse($review->item_matches_correct);
+        $this->assertStringNotContainsString('Wrong size', (string) $review->getRawOriginal('notes'));
+
+        $this->actingAs($seller)->put(route('social.inbox.order-extractions.review', [$conversation, $extraction]), [
+            'verdict' => OrderExtractionReviewVerdict::Accepted->value,
+            'customer_fields_correct' => '1',
+            'item_matches_correct' => '1',
+            'quantities_correct' => '1',
+        ])->assertRedirect();
+
+        $this->assertDatabaseCount('social_order_extraction_reviews', 1);
+        $this->assertSame(OrderExtractionReviewVerdict::Accepted, $review->refresh()->verdict);
+    }
+
+    public function test_incomplete_suggestion_and_unauthorized_user_cannot_submit_quality_review(): void
+    {
+        $seller = $this->userWithPermissions(['social.extract']);
+        $unauthorized = $this->userWithPermissions(['social.view']);
+        $conversation = $this->conversationWithMessage('One item');
+        $message = $conversation->messages()->sole();
+        $extraction = $conversation->orderExtractions()->create([
+            'status' => OrderExtractionStatus::Processing,
+            'provider' => 'openai',
+            'model' => 'gpt-5.4-mini',
+            'input_hash' => hash('sha256', 'processing-review'),
+            'message_count' => 1,
+            'source_message_ids' => [$message->id],
+            'requested_by' => $seller->id,
+        ]);
+
+        $payload = ['verdict' => OrderExtractionReviewVerdict::Rejected->value];
+        $this->actingAs($unauthorized)
+            ->put(route('social.inbox.order-extractions.review', [$conversation, $extraction]), $payload)
+            ->assertForbidden();
+        $this->actingAs($seller)
+            ->put(route('social.inbox.order-extractions.review', [$conversation, $extraction]), $payload)
+            ->assertSessionHas('error', 'Only a completed AI suggestion can be reviewed.');
+
+        $this->assertDatabaseCount('social_order_extraction_reviews', 0);
     }
 
     private function conversationWithMessage(string $body): SocialConversation

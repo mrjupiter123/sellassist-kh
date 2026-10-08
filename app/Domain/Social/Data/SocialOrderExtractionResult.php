@@ -22,5 +22,8 @@ final readonly class SocialOrderExtractionResult
         public float $overallConfidence,
         public array $items,
         public array $payload,
+        public ?int $inputTokens,
+        public ?int $outputTokens,
+        public ?int $totalTokens,
     ) {}
 }

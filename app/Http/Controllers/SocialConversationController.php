@@ -9,6 +9,7 @@ use App\Domain\Payment\Enums\Currency;
 use App\Domain\Product\Models\Product;
 use App\Domain\Social\Actions\MarkSocialConversationRead;
 use App\Domain\Social\Enums\ConversationStatus;
+use App\Domain\Social\Enums\OrderExtractionReviewVerdict;
 use App\Domain\Social\Enums\OrderExtractionStatus;
 use App\Domain\Social\Models\SocialConversation;
 use App\Domain\Social\Models\SocialReplyTemplate;
@@ -75,6 +76,7 @@ class SocialConversationController extends Controller
             'messages', 'convertedOrder', 'assignee:id,uuid,name', 'assigner:id,uuid,name',
             'latestOrderExtraction.items.product:id,name',
             'latestOrderExtraction.items.variant:id,product_id,color,size',
+            'latestOrderExtraction.review.reviewer:id,uuid,name',
         ]);
         $products = Product::query()
             ->where('active', true)
@@ -97,6 +99,8 @@ class SocialConversationController extends Controller
             'conversation' => $conversation,
             'latestExtraction' => $extraction,
             'aiExtractionConfigured' => config('social.ai.enabled') && filled(config('social.ai.api_key')),
+            'aiLowConfidenceThreshold' => (float) config('social.ai.low_confidence_threshold', 0.65),
+            'extractionReviewVerdicts' => OrderExtractionReviewVerdict::cases(),
             'suggestedOrderItems' => $suggestedItems,
             'suggestedCustomer' => [
                 'name' => $readyExtraction?->customer_name,

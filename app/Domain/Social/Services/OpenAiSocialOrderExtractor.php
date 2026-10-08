@@ -92,6 +92,9 @@ final class OpenAiSocialOrderExtractor
             overallConfidence: $this->confidence($payload['overall_confidence'] ?? 0),
             items: $this->items($payload['items'] ?? []),
             payload: $payload,
+            inputTokens: $this->tokenCount($body['usage']['input_tokens'] ?? null),
+            outputTokens: $this->tokenCount($body['usage']['output_tokens'] ?? null),
+            totalTokens: $this->tokenCount($body['usage']['total_tokens'] ?? null),
         );
     }
 
@@ -207,5 +210,10 @@ TEXT;
     private function confidence(mixed $value): float
     {
         return max(0, min(1, is_numeric($value) ? (float) $value : 0));
+    }
+
+    private function tokenCount(mixed $value): ?int
+    {
+        return is_numeric($value) ? max(0, (int) $value) : null;
     }
 }

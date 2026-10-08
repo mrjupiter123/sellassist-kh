@@ -131,6 +131,12 @@
                     <div class="alert alert-danger py-2 mb-0">{{ $latestExtraction->error }}</div>
                 @elseif ($latestExtraction?->status->value === 'ready')
                     <div class="small mb-3">Confidence: {{ number_format((float) $latestExtraction->overall_confidence * 100) }}% · {{ $latestExtraction->model }}</div>
+                    @if ((float) $latestExtraction->overall_confidence < $aiLowConfidenceThreshold)
+                        <div class="alert alert-warning py-2">Low-confidence suggestion. Review every customer and product field carefully.</div>
+                    @endif
+                    @if ($latestExtraction->total_tokens !== null)
+                        <div class="small text-muted mb-3">Usage: {{ number_format($latestExtraction->input_tokens ?? 0) }} input + {{ number_format($latestExtraction->output_tokens ?? 0) }} output = {{ number_format($latestExtraction->total_tokens) }} tokens.</div>
+                    @endif
                     @if (collect($suggestedCustomer)->filter()->isNotEmpty())
                         <dl class="row small mb-3">
                             @foreach (['name' => 'Name', 'phone' => 'Phone', 'address' => 'Address', 'commune' => 'Commune', 'district' => 'District', 'province' => 'Province'] as $key => $label)
@@ -140,7 +146,7 @@
                     @endif
                     <div class="list-group list-group-flush border rounded">
                         @forelse ($latestExtraction->items as $item)
-                            <div class="list-group-item small">
+                            <div class="list-group-item small {{ (float) $item->confidence < $aiLowConfidenceThreshold ? 'list-group-item-warning' : '' }}">
                                 <div class="fw-semibold">{{ $item->product?->name ?? $item->product_query }} × {{ $item->quantity }}</div>
                                 <div class="text-muted">{{ $item->variant?->display_name ?? $item->variant_query }} · {{ number_format((float) $item->confidence * 100) }}% confidence</div>
                                 @if (! $item->product)<div class="text-warning">Catalog match unresolved—select it manually.</div>@endif
@@ -150,6 +156,27 @@
                         @endforelse
                     </div>
                     <div class="form-text mt-2">Matched products are prefilled in the draft form. Review every field before submitting.</div>
+                    @can('social.extract')
+                        <form method="POST" action="{{ route('social.inbox.order-extractions.review', [$conversation, $latestExtraction]) }}" class="border-top mt-3 pt-3">
+                            @csrf @method('PUT')
+                            <h2 class="h6">Rate this suggestion</h2>
+                            <div class="mb-2">
+                                <label class="form-label" for="extraction-verdict">Result</label>
+                                <select class="form-select" id="extraction-verdict" name="verdict" required>
+                                    <option value="">Choose result</option>
+                                    @foreach ($extractionReviewVerdicts as $verdict)<option value="{{ $verdict->value }}" @selected(old('verdict', $latestExtraction->review?->verdict?->value) === $verdict->value)>{{ $verdict->label() }}</option>@endforeach
+                                </select>
+                            </div>
+                            <div class="row g-2 mb-2">
+                                @foreach (['customer_fields_correct' => 'Customer fields', 'item_matches_correct' => 'Product matches', 'quantities_correct' => 'Quantities'] as $field => $label)
+                                    <div class="col-md-4"><label class="form-label" for="{{ $field }}">{{ $label }}</label><select class="form-select form-select-sm" id="{{ $field }}" name="{{ $field }}"><option value="">Not rated</option><option value="1" @selected(old($field, $latestExtraction->review?->{$field}) === true || old($field) === '1')>Correct</option><option value="0" @selected(old($field, $latestExtraction->review?->{$field}) === false || old($field) === '0')>Needs correction</option></select></div>
+                                @endforeach
+                            </div>
+                            <div class="mb-2"><label class="form-label" for="extraction-notes">Correction notes</label><textarea class="form-control" id="extraction-notes" name="notes" rows="2" maxlength="2000">{{ old('notes', $latestExtraction->review?->notes) }}</textarea><div class="form-text">Notes are encrypted. Do not include payment credentials or secrets.</div></div>
+                            <button class="btn btn-outline-secondary btn-sm">Save feedback</button>
+                            @if ($latestExtraction->review)<span class="small text-muted ms-2">Last reviewed {{ $latestExtraction->review->reviewed_at->diffForHumans() }}{{ $latestExtraction->review->reviewer ? ' by '.$latestExtraction->review->reviewer->name : '' }}.</span>@endif
+                        </form>
+                    @endcan
                 @endif
             </div>
         </div>
