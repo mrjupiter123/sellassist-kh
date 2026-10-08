@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Domain\Social\Enums\AiProfileReleaseType;
 use App\Domain\Social\Enums\ConversationStatus;
 use App\Domain\Social\Enums\MessageDirection;
 use App\Domain\Social\Enums\MessageType;
+use App\Domain\Social\Enums\OrderExtractionReviewVerdict;
 use App\Domain\Social\Enums\OrderExtractionStatus;
 use App\Domain\Social\Enums\SocialPlatform;
 use App\Domain\Social\Models\SocialAiExtractionProfile;
@@ -177,6 +179,58 @@ class SocialAiExtractionProfileTest extends TestCase
         });
     }
 
+    public function test_post_release_monitoring_recommends_manual_review_for_aggregate_degradation(): void
+    {
+        config([
+            'social.ai.release_monitoring.minimum_samples' => 10,
+            'social.ai.release_monitoring.minimum_reviews' => 5,
+        ]);
+        $admin = $this->userWithPermissions(['social.ai.manage']);
+        $conversation = $this->conversationWithMessage();
+        $baseline = $this->profile($admin->id, 'v-baseline', 'model-one', 'Baseline guidance.');
+        $candidate = $this->profile($admin->id, 'v-candidate', 'model-two', 'Candidate guidance.', true);
+        $releasedAt = now()->subDay();
+        $release = SocialAiProfileRelease::query()->create([
+            'social_ai_extraction_profile_id' => $candidate->id,
+            'previous_profile_id' => $baseline->id,
+            'type' => AiProfileReleaseType::Activation,
+            'reason' => 'Candidate monitoring test release.',
+            'released_by' => $admin->id,
+            'released_at' => $releasedAt,
+        ]);
+
+        for ($index = 0; $index < 10; $index++) {
+            $this->qualityExtraction(
+                $conversation,
+                $baseline,
+                $admin->id,
+                $index,
+                $releasedAt->copy()->subHours(2),
+                $index < 9,
+                0.90,
+                $index < 5 ? OrderExtractionReviewVerdict::Accepted : null,
+            );
+            $this->qualityExtraction(
+                $conversation,
+                $candidate,
+                $admin->id,
+                $index + 10,
+                $releasedAt->copy()->addHours(2),
+                $index < 6,
+                0.70,
+                $index < 2 ? OrderExtractionReviewVerdict::Accepted : ($index < 5 ? OrderExtractionReviewVerdict::Rejected : null),
+            );
+        }
+
+        $this->actingAs($admin)->get(route('social.ai-profile-releases.show', $release))
+            ->assertOk()
+            ->assertSeeText('Manual rollback review is recommended')
+            ->assertSeeText('Extraction success rate decreased beyond the configured threshold.')
+            ->assertSeeText('Average ready-result confidence decreased beyond the configured threshold.')
+            ->assertSeeText('Seller-reviewed usefulness decreased beyond the configured threshold.')
+            ->assertDontSeeText('Profile Test Customer');
+    }
+
     private function profile(int $userId, string $version, string $model, string $instructions, bool $active = false): SocialAiExtractionProfile
     {
         return SocialAiExtractionProfile::query()->create([
@@ -226,5 +280,41 @@ class SocialAiExtractionProfileTest extends TestCase
         ]);
 
         return $conversation;
+    }
+
+    private function qualityExtraction(
+        SocialConversation $conversation,
+        SocialAiExtractionProfile $profile,
+        int $userId,
+        int $sequence,
+        \DateTimeInterface $createdAt,
+        bool $ready,
+        float $confidence,
+        ?OrderExtractionReviewVerdict $verdict,
+    ): void {
+        $extraction = $conversation->orderExtractions()->create([
+            'status' => $ready ? OrderExtractionStatus::Ready : OrderExtractionStatus::Failed,
+            'provider' => 'openai',
+            'social_ai_extraction_profile_id' => $profile->id,
+            'model' => $profile->model,
+            'prompt_version' => $profile->version,
+            'input_hash' => hash('sha256', "release-monitor-{$profile->id}-{$sequence}"),
+            'message_count' => 1,
+            'source_message_ids' => [$sequence + 1],
+            'overall_confidence' => $ready ? $confidence : null,
+            'total_tokens' => 100,
+            'processed_at' => $createdAt,
+            'requested_by' => $userId,
+        ]);
+        $extraction->timestamps = false;
+        $extraction->forceFill(['created_at' => $createdAt, 'updated_at' => $createdAt])->save();
+
+        if ($verdict) {
+            $extraction->review()->create([
+                'verdict' => $verdict,
+                'reviewed_by' => $userId,
+                'reviewed_at' => $createdAt,
+            ]);
+        }
     }
 }

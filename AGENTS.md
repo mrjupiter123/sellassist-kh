@@ -61,6 +61,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - A profile requires an explicitly approved qualifying evaluation run before activation. Approval and activation remain separate administrator actions; provider output must never approve or activate a profile automatically.
 - Profile approval requires release notes and must be blocked when the candidate regresses against an approved active-profile baseline on the same dataset.
 - Profile activation and rollback go through `ActivateAiExtractionProfile`, require an administrator reason, and create an immutable release-history record in the same transaction.
+- Post-release monitoring uses aggregate extraction status, confidence, token, and seller-review metrics only. Degradation may recommend manual rollback review but must never activate or roll back a profile automatically.
 
 ## Development practices
 

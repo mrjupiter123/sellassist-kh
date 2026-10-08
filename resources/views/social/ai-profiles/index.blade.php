@@ -49,7 +49,7 @@
 
 <div class="card shadow-sm mt-4">
     <div class="card-header bg-white fw-semibold">Profile release history</div>
-    <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Released</th><th>Type</th><th>Profile</th><th>Previous</th><th>Approved score</th><th>Reason</th><th>Administrator</th></tr></thead><tbody>
+    <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Released</th><th>Type</th><th>Profile</th><th>Previous</th><th>Approved score</th><th>Reason</th><th>Administrator</th><th></th></tr></thead><tbody>
         @forelse ($releases as $release)
             <tr>
                 <td>{{ $release->released_at->format('d M Y H:i') }}</td>
@@ -59,9 +59,10 @@
                 <td>{{ $release->approvalRun?->score === null ? 'Legacy approval' : number_format((float) $release->approvalRun->score * 100, 1).'%' }}</td>
                 <td class="text-wrap" style="min-width:220px">{{ $release->reason }}</td>
                 <td>{{ $release->releaser?->name ?? 'Former user' }}</td>
+                <td><a class="btn btn-outline-secondary btn-sm" href="{{ route('social.ai-profile-releases.show', $release) }}">Monitor</a></td>
             </tr>
         @empty
-            <tr><td colspan="7" class="text-center text-muted py-4">No managed profile releases yet.</td></tr>
+            <tr><td colspan="8" class="text-center text-muted py-4">No managed profile releases yet.</td></tr>
         @endforelse
     </tbody></table></div>
 </div>

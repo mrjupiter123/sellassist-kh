@@ -40,6 +40,12 @@ SOCIAL_AI_PROMPT_VERSION=builtin-v1
 SOCIAL_AI_EVALUATION_PASS_THRESHOLD=0.85
 SOCIAL_AI_EVALUATION_APPROVAL_THRESHOLD=0.85
 SOCIAL_AI_EVALUATION_REGRESSION_TOLERANCE=0.02
+SOCIAL_AI_RELEASE_MONITORING_WINDOW_DAYS=14
+SOCIAL_AI_RELEASE_MONITORING_MINIMUM_SAMPLES=10
+SOCIAL_AI_RELEASE_MONITORING_MINIMUM_REVIEWS=5
+SOCIAL_AI_RELEASE_SUCCESS_RATE_DROP=0.10
+SOCIAL_AI_RELEASE_CONFIDENCE_DROP=0.10
+SOCIAL_AI_RELEASE_USEFUL_RATE_DROP=0.15
 ```
 
 Use a Structured Outputs-capable model available to the OpenAI project. Never place the API key in JavaScript, Blade, a route, a database row, source control, screenshots, or logs.
@@ -88,6 +94,8 @@ Administrators with `social.ai.manage` can create profile versions under **AI Pr
 The permanent safety instructions are always prepended. Profile guidance cannot remove the requirements to ignore customer-supplied instructions, avoid invented facts, use local catalog references, and return suggestions for seller review only.
 
 Profiles have no edit or delete workflow. Improvements are new versions. Activating a new version changes only future extraction requests, while reactivating an older version is the rollback mechanism. Every activation and rollback requires an administrator reason and creates an immutable release-history record containing the prior profile and approved evaluation run. Each extraction records the profile reference, model, prompt version, and SHA-256 hash of its effective instructions. Historical and already queued extractions are never rewritten.
+
+Each release-history row links to aggregate post-release monitoring. The monitor compares the previous profile during the configured pre-release window with the released profile after activation, stopping the candidate window at the next release when applicable. It compares completed-sample success rate, average confidence, reviewed usefulness, and token usage without loading or displaying messages, customer identities, addresses, extraction payloads, or review notes. Threshold breaches produce an advisory manual-rollback recommendation only. They never switch profiles automatically.
 
 Changing the active profile changes the extraction idempotency identity, so the same conversation can be evaluated once under each distinct profile version. API access is still checked only when the queued request runs; administrators should test a new model/version on staging before broader activation.
 

@@ -21,5 +21,13 @@ return [
         'evaluation_pass_threshold' => env('SOCIAL_AI_EVALUATION_PASS_THRESHOLD', 0.85),
         'evaluation_approval_threshold' => env('SOCIAL_AI_EVALUATION_APPROVAL_THRESHOLD', 0.85),
         'evaluation_regression_tolerance' => env('SOCIAL_AI_EVALUATION_REGRESSION_TOLERANCE', 0.02),
+        'release_monitoring' => [
+            'window_days' => env('SOCIAL_AI_RELEASE_MONITORING_WINDOW_DAYS', 14),
+            'minimum_samples' => env('SOCIAL_AI_RELEASE_MONITORING_MINIMUM_SAMPLES', 10),
+            'minimum_reviews' => env('SOCIAL_AI_RELEASE_MONITORING_MINIMUM_REVIEWS', 5),
+            'success_rate_drop' => env('SOCIAL_AI_RELEASE_SUCCESS_RATE_DROP', 0.10),
+            'confidence_drop' => env('SOCIAL_AI_RELEASE_CONFIDENCE_DROP', 0.10),
+            'useful_rate_drop' => env('SOCIAL_AI_RELEASE_USEFUL_RATE_DROP', 0.15),
+        ],
     ],
 ];

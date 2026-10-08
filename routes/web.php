@@ -22,6 +22,7 @@ use App\Http\Controllers\ShipmentIntegrationController;
 use App\Http\Controllers\ShipmentStatusController;
 use App\Http\Controllers\SocialAiEvaluationController;
 use App\Http\Controllers\SocialAiExtractionProfileController;
+use App\Http\Controllers\SocialAiProfileReleaseController;
 use App\Http\Controllers\SocialChannelController;
 use App\Http\Controllers\SocialContactController;
 use App\Http\Controllers\SocialConversationAssignmentController;
@@ -102,6 +103,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::get('/social/ai-profiles', [SocialAiExtractionProfileController::class, 'index'])->middleware('permission:social.ai.manage')->name('social.ai-profiles.index');
     Route::post('/social/ai-profiles', [SocialAiExtractionProfileController::class, 'store'])->middleware('permission:social.ai.manage')->name('social.ai-profiles.store');
     Route::post('/social/ai-profiles/{profile}/activate', [SocialAiExtractionProfileController::class, 'activate'])->middleware('permission:social.ai.manage')->name('social.ai-profiles.activate');
+    Route::get('/social/ai-profile-releases/{release}', [SocialAiProfileReleaseController::class, 'show'])->middleware('permission:social.ai.manage')->name('social.ai-profile-releases.show');
     Route::get('/social/ai-evaluations', [SocialAiEvaluationController::class, 'index'])->middleware('permission:social.ai.manage')->name('social.ai-evaluations.index');
     Route::post('/social/ai-evaluations/cases', [SocialAiEvaluationController::class, 'storeCase'])->middleware('permission:social.ai.manage')->name('social.ai-evaluations.cases.store');
     Route::post('/social/ai-evaluations/datasets', [SocialAiEvaluationController::class, 'storeDataset'])->middleware('permission:social.ai.manage')->name('social.ai-evaluations.datasets.store');
