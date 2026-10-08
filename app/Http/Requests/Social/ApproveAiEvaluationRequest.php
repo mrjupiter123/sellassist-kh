@@ -16,6 +16,8 @@ class ApproveAiEvaluationRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
-        return [];
+        return [
+            'release_notes' => ['required', 'string', 'max:2000'],
+        ];
     }
 }

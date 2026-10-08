@@ -16,7 +16,7 @@ class SocialAiEvaluationRun extends Model
     use HasPublicUuid;
 
     protected $fillable = [
-        'social_ai_extraction_profile_id', 'status', 'case_ids', 'total_cases', 'passed_cases',
+        'social_ai_extraction_profile_id', 'social_ai_evaluation_dataset_id', 'status', 'case_ids', 'total_cases', 'passed_cases',
         'failed_cases', 'score', 'total_tokens', 'error', 'requested_by', 'started_at', 'completed_at',
     ];
 
@@ -38,6 +38,11 @@ class SocialAiEvaluationRun extends Model
     public function profile(): BelongsTo
     {
         return $this->belongsTo(SocialAiExtractionProfile::class, 'social_ai_extraction_profile_id');
+    }
+
+    public function dataset(): BelongsTo
+    {
+        return $this->belongsTo(SocialAiEvaluationDataset::class, 'social_ai_evaluation_dataset_id');
     }
 
     public function requester(): BelongsTo

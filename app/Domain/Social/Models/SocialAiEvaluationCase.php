@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\HasPublicUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SocialAiEvaluationCase extends Model
@@ -34,5 +35,15 @@ class SocialAiEvaluationCase extends Model
     public function results(): HasMany
     {
         return $this->hasMany(SocialAiEvaluationResult::class, 'social_ai_evaluation_case_id');
+    }
+
+    public function datasets(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            SocialAiEvaluationDataset::class,
+            'social_ai_evaluation_dataset_cases',
+            'social_ai_evaluation_case_id',
+            'social_ai_evaluation_dataset_id',
+        );
     }
 }

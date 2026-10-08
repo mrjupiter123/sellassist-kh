@@ -4,18 +4,35 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Domain\Social\Enums\AiEvaluationDatasetStatus;
 use App\Domain\Social\Models\SocialAiEvaluationCase;
+use App\Domain\Social\Models\SocialAiEvaluationDataset;
 use Illuminate\Database\Seeder;
 
 class AiEvaluationCaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $caseIds = [];
         foreach ($this->cases() as $case) {
-            SocialAiEvaluationCase::query()->updateOrCreate(
+            $caseIds[] = SocialAiEvaluationCase::query()->firstOrCreate(
                 ['name' => $case['name'], 'locale' => $case['locale']],
                 [...$case, 'active' => true],
-            );
+            )->id;
+        }
+
+        $dataset = SocialAiEvaluationDataset::query()->firstOrCreate(
+            ['name' => 'Core order extraction', 'version' => 'v1'],
+            [
+                'release_notes' => 'Initial synthetic Khmer and English order-intake regression suite.',
+                'status' => AiEvaluationDatasetStatus::Frozen,
+                'frozen_at' => now(),
+            ],
+        );
+        if ($dataset->wasRecentlyCreated) {
+            $dataset->cases()->attach(collect($caseIds)->mapWithKeys(
+                fn (int $caseId, int $position): array => [$caseId => ['position' => $position + 1]],
+            )->all());
         }
     }
 

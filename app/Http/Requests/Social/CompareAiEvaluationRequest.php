@@ -7,7 +7,7 @@ namespace App\Http\Requests\Social;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class RunAiEvaluationRequest extends FormRequest
+class CompareAiEvaluationRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -18,7 +18,8 @@ class RunAiEvaluationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'dataset_id' => ['required', 'uuid', Rule::exists('social_ai_evaluation_datasets', 'uuid')],
+            'baseline' => ['nullable', 'required_with:candidate', 'uuid', Rule::exists('social_ai_evaluation_runs', 'uuid')],
+            'candidate' => ['nullable', 'required_with:baseline', 'uuid', 'different:baseline', Rule::exists('social_ai_evaluation_runs', 'uuid')],
         ];
     }
 }

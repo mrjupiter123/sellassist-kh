@@ -17,7 +17,8 @@ class SocialAiExtractionProfile extends Model
     protected $fillable = [
         'name', 'version', 'model', 'instructions', 'active', 'activation_eligible',
         'created_by', 'activated_by', 'activated_at', 'approved_by',
-        'approval_evaluation_run_id', 'approved_at',
+        'approval_evaluation_run_id', 'approval_baseline_run_id', 'approval_score_delta',
+        'approval_release_notes', 'approved_at',
     ];
 
     protected function casts(): array
@@ -27,6 +28,7 @@ class SocialAiExtractionProfile extends Model
             'activation_eligible' => 'boolean',
             'activated_at' => 'datetime',
             'approved_at' => 'datetime',
+            'approval_score_delta' => 'decimal:4',
         ];
     }
 
@@ -58,5 +60,10 @@ class SocialAiExtractionProfile extends Model
     public function approvalRun(): BelongsTo
     {
         return $this->belongsTo(SocialAiEvaluationRun::class, 'approval_evaluation_run_id');
+    }
+
+    public function approvalBaselineRun(): BelongsTo
+    {
+        return $this->belongsTo(SocialAiEvaluationRun::class, 'approval_baseline_run_id');
     }
 }
