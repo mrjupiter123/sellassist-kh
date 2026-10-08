@@ -50,6 +50,7 @@ final class OperationalHealthService
         return DB::table('failed_jobs')
             ->select(['uuid', 'connection', 'queue', 'exception', 'failed_at'])
             ->latest('failed_at')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
     }
 }

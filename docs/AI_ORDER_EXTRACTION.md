@@ -74,6 +74,8 @@ Sellers can classify each completed extraction as useful, corrected, or not usef
 
 Automated tests use mocked provider responses and synthetic Khmer/English examples. They verify the extraction contract and safety boundaries without sending test data to OpenAI or incurring API usage.
 
+Administrators with `operations.view` can monitor aggregate extraction quality under **Operations**. The dashboard provides fixed 7, 30, and 90-day filters, success and failure rates, low-confidence counts, seller review outcomes, per-model performance, daily token usage, and recent review metadata. It intentionally does not decrypt or display conversations, extracted customer fields, provider payloads, or correction notes.
+
 Official references:
 
 - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)

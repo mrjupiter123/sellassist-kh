@@ -53,6 +53,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Treat every AI field and catalog reference as untrusted. Revalidate product and variant references server-side, encrypt extracted customer fields, and present results only as editable suggestions.
 - AI suggestions must never link customers or create, confirm, amend, pay, ship, or otherwise mutate an order without the existing seller-reviewed workflow.
 - AI quality reviews are evaluation records only. Encrypt correction notes, keep token usage separate from monetary estimates, and never use a review to trigger customer, order, inventory, payment, or shipment mutations.
+- AI quality dashboards may expose aggregate status, confidence, model, token, and review metadata only. Never decrypt or display customer messages, extracted identity/address fields, provider payloads, or correction notes in operational analytics.
 
 ## Development practices
 

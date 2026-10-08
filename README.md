@@ -113,7 +113,7 @@ php artisan queue:work --queue=integrations,default --tries=3 --timeout=60
 
 No Laravel scheduler entry is currently required. On cPanel without a persistent worker, invoke `queue:work --queue=integrations,default --stop-when-empty` every minute through cron.
 
-Messenger and Telegram webhooks, social replies, and AI order suggestions use the same `integrations` queue. Administrators can monitor pending/failed jobs, recent delivery failures, and delivery/social webhook health under **Operations**.
+Messenger and Telegram webhooks, social replies, and AI order suggestions use the same `integrations` queue. Administrators can monitor pending/failed jobs, recent delivery failures, delivery/social webhook health, and aggregate AI extraction quality under **Operations**. The AI dashboard supports 7/30/90-day views for success, confidence, seller feedback, model performance, and token usage without displaying customer messages or encrypted correction notes.
 
 ## Stabilization runbooks
 
