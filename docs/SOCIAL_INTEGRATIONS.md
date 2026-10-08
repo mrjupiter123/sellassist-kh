@@ -26,7 +26,7 @@ Meta signs POST payloads in `X-Hub-Signature-256`. SellAssist validates the HMAC
 ## Queue worker
 
 ```bash
-php artisan queue:work --queue=integrations,default --tries=3 --timeout=60
+php artisan queue:work --queue=integrations,default --tries=3 --timeout=240
 ```
 
 On shared cPanel without a persistent process, use the minute cron documented in [cPanel deployment](CPANEL_DEPLOYMENT.md). Administrators can inspect failures and safely request a retry under **Operations**.

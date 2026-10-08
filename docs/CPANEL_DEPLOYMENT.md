@@ -43,6 +43,8 @@ OPENAI_API_KEY=
 OPENAI_ORDER_EXTRACTION_MODEL=gpt-5.4-mini
 SOCIAL_AI_LOW_CONFIDENCE_THRESHOLD=0.65
 SOCIAL_AI_PROMPT_VERSION=builtin-v1
+SOCIAL_AI_EVALUATION_PASS_THRESHOLD=0.85
+SOCIAL_AI_EVALUATION_APPROVAL_THRESHOLD=0.85
 ```
 
 Keep this disabled until the data-sharing boundary in [AI order suggestions](AI_ORDER_EXTRACTION.md) is accepted for the environment. Never expose the API key in the browser or source control.
@@ -56,6 +58,7 @@ php artisan key:generate --force
 php artisan optimize:clear
 php artisan migrate --force
 php artisan db:seed --class=RolePermissionSeeder --force
+php artisan db:seed --class=AiEvaluationCaseSeeder --force
 php artisan storage:link
 php artisan optimize
 ```
@@ -76,7 +79,7 @@ Do not run `migrate:fresh` on a database containing data. If the server cannot r
 If the plan does not provide Supervisor, add a cPanel cron job every minute:
 
 ```cron
-* * * * * cd /home/CPANEL_USER/sellassist && /usr/local/bin/php artisan queue:work --queue=integrations,default --stop-when-empty --tries=3 --timeout=60 >> /dev/null 2>&1
+* * * * * cd /home/CPANEL_USER/sellassist && /usr/local/bin/php artisan queue:work --queue=integrations,default --stop-when-empty --tries=3 --timeout=240 >> /dev/null 2>&1
 ```
 
 Use the PHP binary path shown by `which php`; hosts may use a versioned path. Open **Operations** after deployment to confirm jobs do not remain pending and to inspect failures. A persistent worker is preferable where the host supports one.
@@ -92,6 +95,7 @@ composer install --no-dev --optimize-autoloader
 php artisan optimize:clear
 php artisan migrate --force
 php artisan db:seed --class=RolePermissionSeeder --force
+php artisan db:seed --class=AiEvaluationCaseSeeder --force
 php artisan optimize
 php artisan up
 ```

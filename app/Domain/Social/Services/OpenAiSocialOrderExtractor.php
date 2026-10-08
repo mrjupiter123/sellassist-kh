@@ -7,6 +7,7 @@ namespace App\Domain\Social\Services;
 use App\Domain\Product\Models\Product;
 use App\Domain\Social\Data\SocialOrderExtractionResult;
 use App\Domain\Social\Exceptions\SocialOrderExtractionException;
+use App\Domain\Social\Models\SocialAiExtractionProfile;
 use App\Domain\Social\Models\SocialMessage;
 use App\Domain\Social\Models\SocialOrderExtraction;
 use Illuminate\Http\Client\ConnectionException;
@@ -20,6 +21,34 @@ final class OpenAiSocialOrderExtractor
 
     public function extract(SocialOrderExtraction $extraction): SocialOrderExtractionResult
     {
+        return $this->request(
+            $extraction->model,
+            $this->prompt->effectiveInstructions($extraction->profile),
+            $this->context($extraction),
+        );
+    }
+
+    /**
+     * @param  list<string>  $messages
+     * @param  list<array<string, mixed>>  $catalog
+     */
+    public function extractSynthetic(SocialAiExtractionProfile $profile, array $messages, array $catalog): SocialOrderExtractionResult
+    {
+        $context = [
+            'customer_messages' => collect($messages)->values()->map(fn (string $message, int $index): array => [
+                'message_ref' => 'synthetic-'.($index + 1),
+                'text' => mb_substr($message, 0, 2500),
+                'sent_at' => null,
+            ])->all(),
+            'active_catalog' => $catalog,
+        ];
+
+        return $this->request($profile->model, $this->prompt->effectiveInstructions($profile), $context);
+    }
+
+    /** @param array<string, mixed> $context */
+    private function request(string $model, string $instructions, array $context): SocialOrderExtractionResult
+    {
         $apiKey = (string) config('social.ai.api_key');
         if ($apiKey === '') {
             throw new SocialOrderExtractionException('AI order extraction is not configured.');
@@ -31,14 +60,14 @@ final class OpenAiSocialOrderExtractor
                 ->acceptJson()
                 ->timeout(45)
                 ->post('/responses', [
-                    'model' => $extraction->model,
+                    'model' => $model,
                     'store' => false,
-                    'instructions' => $this->prompt->effectiveInstructions($extraction->profile),
+                    'instructions' => $instructions,
                     'input' => [[
                         'role' => 'user',
                         'content' => [[
                             'type' => 'input_text',
-                            'text' => json_encode($this->context($extraction), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+                            'text' => json_encode($context, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
                         ]],
                     ]],
                     'text' => [

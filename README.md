@@ -86,7 +86,7 @@ Authorized staff can manually reply from a social conversation. Replies are encr
 
 The social inbox supports staff assignment, per-user unread filtering, controlled archive/reopen transitions, and encrypted reusable reply templates. Viewing a conversation marks it read only for the current user; a later inbound message makes it unread again. Templates populate the reviewed reply form but never send automatically.
 
-Authorized sellers may explicitly request an AI order suggestion for an open conversation. The queued extraction sends at most 40 inbound text messages and limited active catalog identifiers to OpenAI with response storage disabled. It does not send prices, costs, stock, payments, or credentials. Returned customer and item fields are encrypted locally, catalog references are revalidated server-side, and the seller must review and submit the existing forms. Confidence warnings, token-usage counters, encrypted seller quality reviews, and administrator-controlled immutable prompt/model profiles support evaluation without granting AI operational authority. Every extraction snapshots its profile, version, model, and effective-instructions hash; reactivating an older profile provides safe rollback without rewriting history. AI output never links customers or creates, confirms, or mutates orders. See [AI order suggestions](docs/AI_ORDER_EXTRACTION.md).
+Authorized sellers may explicitly request an AI order suggestion for an open conversation. The queued extraction sends at most 40 inbound text messages and limited active catalog identifiers to OpenAI with response storage disabled. It does not send prices, costs, stock, payments, or credentials. Returned customer and item fields are encrypted locally, catalog references are revalidated server-side, and the seller must review and submit the existing forms. Confidence warnings, token-usage counters, encrypted seller quality reviews, administrator-controlled immutable prompt/model profiles, and a manually triggered synthetic Khmer/English evaluation runner support evaluation without granting AI operational authority. Every extraction snapshots its profile, version, model, and effective-instructions hash; reactivating an older approved profile provides safe rollback without rewriting history. AI output never links customers or creates, confirms, or mutates orders. See [AI order suggestions](docs/AI_ORDER_EXTRACTION.md).
 
 ## Tests and formatting
 
@@ -108,7 +108,7 @@ php artisan migrate:fresh --seed
 Delivery provider submissions, tracking synchronization, and webhook processing use the database queue. Run:
 
 ```bash
-php artisan queue:work --queue=integrations,default --tries=3 --timeout=60
+php artisan queue:work --queue=integrations,default --tries=3 --timeout=240
 ```
 
 No Laravel scheduler entry is currently required. On cPanel without a persistent worker, invoke `queue:work --queue=integrations,default --stop-when-empty` every minute through cron.
@@ -132,6 +132,7 @@ Use PHP 8.3+, point the domain document root to `public/`, configure production 
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
 php artisan db:seed --class=RolePermissionSeeder --force
+php artisan db:seed --class=AiEvaluationCaseSeeder --force
 npm ci
 npm run build
 php artisan optimize

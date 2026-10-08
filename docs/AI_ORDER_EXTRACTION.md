@@ -37,6 +37,8 @@ OPENAI_API_KEY=replace-with-a-server-side-project-key
 OPENAI_ORDER_EXTRACTION_MODEL=gpt-5.4-mini
 SOCIAL_AI_LOW_CONFIDENCE_THRESHOLD=0.65
 SOCIAL_AI_PROMPT_VERSION=builtin-v1
+SOCIAL_AI_EVALUATION_PASS_THRESHOLD=0.85
+SOCIAL_AI_EVALUATION_APPROVAL_THRESHOLD=0.85
 ```
 
 Use a Structured Outputs-capable model available to the OpenAI project. Never place the API key in JavaScript, Blade, a route, a database row, source control, screenshots, or logs.
@@ -46,13 +48,14 @@ After editing `.env`, run:
 ```bash
 php artisan optimize:clear
 php artisan db:seed --class=RolePermissionSeeder --force
+php artisan db:seed --class=AiEvaluationCaseSeeder --force
 php artisan optimize
 ```
 
 The database queue worker must process `integrations`:
 
 ```bash
-php artisan queue:work --queue=integrations,default --tries=3 --timeout=60
+php artisan queue:work --queue=integrations,default --tries=3 --timeout=240
 ```
 
 On shared cPanel hosting, the existing once-per-minute `--stop-when-empty` cron strategy is sufficient.
@@ -86,6 +89,14 @@ The permanent safety instructions are always prepended. Profile guidance cannot 
 Profiles have no edit or delete workflow. Improvements are new versions. Activating a new version changes only future extraction requests, while reactivating an older version is the rollback mechanism. Each extraction records the profile reference, model, prompt version, and SHA-256 hash of its effective instructions. Historical and already queued extractions are never rewritten.
 
 Changing the active profile changes the extraction idempotency identity, so the same conversation can be evaluated once under each distinct profile version. API access is still checked only when the queued request runs; administrators should test a new model/version on staging before broader activation.
+
+## Controlled synthetic evaluations
+
+Run `php artisan db:seed --class=AiEvaluationCaseSeeder --force` after deployment to install the curated Khmer and English fixtures. Inputs, synthetic catalog records, expected results, actual provider results, and difference lists are encrypted at rest. The fixtures use invented names, phone numbers, addresses, and UUIDs and never read social conversations, customers, products, orders, or production catalog data.
+
+Administrators start evaluations manually under **AI Profiles → Run evaluations**. The selected active-case IDs are snapshotted on the run, and each case is sent through the `integrations` queue with `store: false`. The deterministic local scorer compares customer fields, normalized phone numbers, and order items against the expected structured output. It does not use another model as a grader.
+
+`SOCIAL_AI_EVALUATION_PASS_THRESHOLD` controls individual-case pass/fail. A profile can be approved only when a completed run meets `SOCIAL_AI_EVALUATION_APPROVAL_THRESHOLD`, contains a result for every snapshotted case, and has no provider-error results. Approval only marks the profile eligible; activation is a separate administrator action. No evaluation result can approve or activate itself.
 
 Official references:
 

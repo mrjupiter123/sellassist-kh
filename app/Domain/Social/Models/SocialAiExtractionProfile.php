@@ -15,15 +15,18 @@ class SocialAiExtractionProfile extends Model
     use HasPublicUuid;
 
     protected $fillable = [
-        'name', 'version', 'model', 'instructions', 'active',
-        'created_by', 'activated_by', 'activated_at',
+        'name', 'version', 'model', 'instructions', 'active', 'activation_eligible',
+        'created_by', 'activated_by', 'activated_at', 'approved_by',
+        'approval_evaluation_run_id', 'approved_at',
     ];
 
     protected function casts(): array
     {
         return [
             'active' => 'boolean',
+            'activation_eligible' => 'boolean',
             'activated_at' => 'datetime',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -40,5 +43,20 @@ class SocialAiExtractionProfile extends Model
     public function activator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'activated_by');
+    }
+
+    public function evaluationRuns(): HasMany
+    {
+        return $this->hasMany(SocialAiEvaluationRun::class, 'social_ai_extraction_profile_id');
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function approvalRun(): BelongsTo
+    {
+        return $this->belongsTo(SocialAiEvaluationRun::class, 'approval_evaluation_run_id');
     }
 }

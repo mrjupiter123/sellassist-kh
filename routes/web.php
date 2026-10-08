@@ -20,6 +20,7 @@ use App\Http\Controllers\RefundController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\ShipmentIntegrationController;
 use App\Http\Controllers\ShipmentStatusController;
+use App\Http\Controllers\SocialAiEvaluationController;
 use App\Http\Controllers\SocialAiExtractionProfileController;
 use App\Http\Controllers\SocialChannelController;
 use App\Http\Controllers\SocialContactController;
@@ -101,6 +102,9 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::get('/social/ai-profiles', [SocialAiExtractionProfileController::class, 'index'])->middleware('permission:social.ai.manage')->name('social.ai-profiles.index');
     Route::post('/social/ai-profiles', [SocialAiExtractionProfileController::class, 'store'])->middleware('permission:social.ai.manage')->name('social.ai-profiles.store');
     Route::post('/social/ai-profiles/{profile}/activate', [SocialAiExtractionProfileController::class, 'activate'])->middleware('permission:social.ai.manage')->name('social.ai-profiles.activate');
+    Route::get('/social/ai-evaluations', [SocialAiEvaluationController::class, 'index'])->middleware('permission:social.ai.manage')->name('social.ai-evaluations.index');
+    Route::post('/social/ai-evaluations/{profile}/runs', [SocialAiEvaluationController::class, 'store'])->middleware('permission:social.ai.manage')->name('social.ai-evaluations.runs.store');
+    Route::post('/social/ai-evaluations/{profile}/runs/{evaluationRun}/approve', [SocialAiEvaluationController::class, 'approve'])->middleware('permission:social.ai.manage')->scopeBindings()->name('social.ai-evaluations.runs.approve');
     Route::get('/social/inbox/{conversation}', [SocialConversationController::class, 'show'])->middleware('permission:social.view')->name('social.inbox.show');
     Route::post('/social/inbox/{conversation}/link-customer', [SocialContactController::class, 'link'])->middleware('permission:social.manage')->name('social.inbox.link-customer');
     Route::post('/social/inbox/{conversation}/customers', [SocialContactController::class, 'createCustomer'])->middleware('permission:social.manage')->name('social.inbox.customers.store');

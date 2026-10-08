@@ -18,7 +18,7 @@ class SocialAiExtractionProfileController extends Controller
     public function index(): View
     {
         $profiles = SocialAiExtractionProfile::query()
-            ->with(['creator:id,uuid,name', 'activator:id,uuid,name'])
+            ->with(['creator:id,uuid,name', 'activator:id,uuid,name', 'approver:id,uuid,name', 'approvalRun:id,uuid,score'])
             ->withCount([
                 'extractions',
                 'extractions as ready_extractions_count' => fn ($query) => $query->where('status', OrderExtractionStatus::Ready),

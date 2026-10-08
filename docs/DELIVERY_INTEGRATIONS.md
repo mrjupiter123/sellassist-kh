@@ -35,7 +35,7 @@ Confirm the authentication header and prefix with the issued merchant credential
 Provider calls and webhook processing run on the database queue:
 
 ```bash
-php artisan queue:work --queue=integrations,default --tries=3 --timeout=60
+php artisan queue:work --queue=integrations,default --tries=3 --timeout=240
 ```
 
 Use a persistent cPanel process where available. Otherwise run `queue:work --stop-when-empty` every minute from cron. Failed jobs remain in `failed_jobs` for review and retry.

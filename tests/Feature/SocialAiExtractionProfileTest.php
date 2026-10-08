@@ -49,8 +49,14 @@ class SocialAiExtractionProfileTest extends TestCase
             'activate' => '1',
         ])->assertRedirect(route('social.ai-profiles.index'));
         $first = SocialAiExtractionProfile::query()->sole();
-        $this->assertTrue($first->active);
+        $this->assertFalse($first->active);
+        $this->assertFalse($first->activation_eligible);
         $this->assertSame($admin->id, $first->created_by);
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first))
+            ->assertSessionHas('error', 'Approve a qualifying synthetic evaluation run before activating this profile.');
+        $first->update(['activation_eligible' => true]);
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first))->assertRedirect();
+        $this->assertTrue($first->refresh()->active);
 
         $this->actingAs($admin)->post(route('social.ai-profiles.store'), [
             'name' => 'Khmer orders',
@@ -60,8 +66,12 @@ class SocialAiExtractionProfileTest extends TestCase
             'activate' => '1',
         ])->assertRedirect();
         $second = SocialAiExtractionProfile::query()->where('version', 'v2')->sole();
+        $this->assertTrue($first->refresh()->active);
+        $this->assertFalse($second->active);
+        $second->update(['activation_eligible' => true]);
+        $this->actingAs($admin)->post(route('social.ai-profiles.activate', $second))->assertRedirect();
         $this->assertFalse($first->refresh()->active);
-        $this->assertTrue($second->active);
+        $this->assertTrue($second->refresh()->active);
 
         $this->actingAs($admin)->post(route('social.ai-profiles.activate', $first))->assertRedirect();
         $this->assertTrue($first->refresh()->active);
@@ -166,6 +176,7 @@ class SocialAiExtractionProfileTest extends TestCase
             'model' => $model,
             'instructions' => $instructions,
             'active' => $active,
+            'activation_eligible' => true,
             'created_by' => $userId,
             'activated_by' => $active ? $userId : null,
             'activated_at' => $active ? now() : null,

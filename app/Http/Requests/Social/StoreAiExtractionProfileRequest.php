@@ -25,7 +25,6 @@ class StoreAiExtractionProfileRequest extends FormRequest
             ],
             'model' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9._:-]+$/'],
             'instructions' => ['required', 'string', 'max:10000'],
-            'activate' => ['nullable', 'boolean'],
         ];
     }
 }
