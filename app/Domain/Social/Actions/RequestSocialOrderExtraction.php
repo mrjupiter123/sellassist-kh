@@ -8,14 +8,18 @@ use App\Domain\Social\Enums\ConversationStatus;
 use App\Domain\Social\Enums\MessageDirection;
 use App\Domain\Social\Enums\OrderExtractionStatus;
 use App\Domain\Social\Exceptions\SocialOrderExtractionException;
+use App\Domain\Social\Models\SocialAiExtractionProfile;
 use App\Domain\Social\Models\SocialConversation;
 use App\Domain\Social\Models\SocialOrderExtraction;
+use App\Domain\Social\Services\AiExtractionPrompt;
 use App\Jobs\ExtractSocialOrderSuggestion;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 final class RequestSocialOrderExtraction
 {
+    public function __construct(private readonly AiExtractionPrompt $prompt) {}
+
     public function execute(SocialConversation $conversation, User $actor): SocialOrderExtraction
     {
         if (! config('social.ai.enabled') || blank(config('social.ai.api_key'))) {
@@ -41,7 +45,10 @@ final class RequestSocialOrderExtraction
                 throw new SocialOrderExtractionException('There are no customer text messages to extract.');
             }
 
-            $inputHash = hash('sha256', $messages->map(fn ($message): string => $message->id.':'.$message->external_id.':'.$message->updated_at?->getTimestamp())->implode('|'));
+            $profile = SocialAiExtractionProfile::query()->where('active', true)->first();
+            $instructionsHash = $this->prompt->hash($profile);
+            $profileIdentity = $profile?->uuid ?? 'builtin:'.$this->prompt->version(null);
+            $inputHash = hash('sha256', $messages->map(fn ($message): string => $message->id.':'.$message->external_id.':'.$message->updated_at?->getTimestamp())->implode('|').'|'.$profileIdentity.'|'.$instructionsHash.'|'.($profile?->model ?? config('social.ai.model')));
             $existing = $locked->orderExtractions()
                 ->where('input_hash', $inputHash)
                 ->whereIn('status', [
@@ -57,7 +64,10 @@ final class RequestSocialOrderExtraction
             $extraction = $locked->orderExtractions()->create([
                 'status' => OrderExtractionStatus::Queued,
                 'provider' => 'openai',
-                'model' => (string) config('social.ai.model'),
+                'social_ai_extraction_profile_id' => $profile?->id,
+                'model' => $profile?->model ?? (string) config('social.ai.model'),
+                'prompt_version' => $this->prompt->version($profile),
+                'instructions_hash' => $instructionsHash,
                 'input_hash' => $inputHash,
                 'message_count' => $messages->count(),
                 'source_message_ids' => $messages->pluck('id')->all(),

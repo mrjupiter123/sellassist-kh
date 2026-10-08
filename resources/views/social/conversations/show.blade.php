@@ -130,7 +130,7 @@
                 @elseif ($latestExtraction?->status->value === 'failed')
                     <div class="alert alert-danger py-2 mb-0">{{ $latestExtraction->error }}</div>
                 @elseif ($latestExtraction?->status->value === 'ready')
-                    <div class="small mb-3">Confidence: {{ number_format((float) $latestExtraction->overall_confidence * 100) }}% · {{ $latestExtraction->model }}</div>
+                    <div class="small mb-3">Confidence: {{ number_format((float) $latestExtraction->overall_confidence * 100) }}% · {{ $latestExtraction->model }} · prompt {{ $latestExtraction->prompt_version ?: 'legacy' }}</div>
                     @if ((float) $latestExtraction->overall_confidence < $aiLowConfidenceThreshold)
                         <div class="alert alert-warning py-2">Low-confidence suggestion. Review every customer and product field carefully.</div>
                     @endif

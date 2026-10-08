@@ -23,7 +23,7 @@ class RolePermissionSeeder extends Seeder
         'users.view', 'users.manage',
         'delivery.view', 'delivery.create', 'delivery.update',
         'delivery.cod.reconcile', 'delivery.providers.manage',
-        'social.view', 'social.manage', 'social.reply', 'social.extract', 'social.channels.manage',
+        'social.view', 'social.manage', 'social.reply', 'social.extract', 'social.channels.manage', 'social.ai.manage',
         'operations.view', 'operations.retry',
     ];
 

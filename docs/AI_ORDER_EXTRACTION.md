@@ -36,6 +36,7 @@ SOCIAL_AI_EXTRACTION_ENABLED=true
 OPENAI_API_KEY=replace-with-a-server-side-project-key
 OPENAI_ORDER_EXTRACTION_MODEL=gpt-5.4-mini
 SOCIAL_AI_LOW_CONFIDENCE_THRESHOLD=0.65
+SOCIAL_AI_PROMPT_VERSION=builtin-v1
 ```
 
 Use a Structured Outputs-capable model available to the OpenAI project. Never place the API key in JavaScript, Blade, a route, a database row, source control, screenshots, or logs.
@@ -75,6 +76,16 @@ Sellers can classify each completed extraction as useful, corrected, or not usef
 Automated tests use mocked provider responses and synthetic Khmer/English examples. They verify the extraction contract and safety boundaries without sending test data to OpenAI or incurring API usage.
 
 Administrators with `operations.view` can monitor aggregate extraction quality under **Operations**. The dashboard provides fixed 7, 30, and 90-day filters, success and failure rates, low-confidence counts, seller review outcomes, per-model performance, daily token usage, and recent review metadata. It intentionally does not decrypt or display conversations, extracted customer fields, provider payloads, or correction notes.
+
+## Prompt and model profiles
+
+Administrators with `social.ai.manage` can create profile versions under **AI Profiles**. A profile contains a human-readable name, immutable version, OpenAI model identifier, and additional extraction guidance. Only one managed profile is active at a time. When no managed profile is active, the application uses `OPENAI_ORDER_EXTRACTION_MODEL` with the built-in prompt and `SOCIAL_AI_PROMPT_VERSION`.
+
+The permanent safety instructions are always prepended. Profile guidance cannot remove the requirements to ignore customer-supplied instructions, avoid invented facts, use local catalog references, and return suggestions for seller review only.
+
+Profiles have no edit or delete workflow. Improvements are new versions. Activating a new version changes only future extraction requests, while reactivating an older version is the rollback mechanism. Each extraction records the profile reference, model, prompt version, and SHA-256 hash of its effective instructions. Historical and already queued extractions are never rewritten.
+
+Changing the active profile changes the extraction idempotency identity, so the same conversation can be evaluated once under each distinct profile version. API access is still checked only when the queued request runs; administrators should test a new model/version on staging before broader activation.
 
 Official references:
 

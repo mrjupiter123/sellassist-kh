@@ -17,7 +17,8 @@ class SocialOrderExtraction extends Model
     use HasPublicUuid;
 
     protected $fillable = [
-        'social_conversation_id', 'status', 'provider', 'model', 'input_hash', 'message_count',
+        'social_conversation_id', 'status', 'provider', 'social_ai_extraction_profile_id',
+        'model', 'prompt_version', 'instructions_hash', 'input_hash', 'message_count',
         'source_message_ids', 'customer_name', 'phone', 'address', 'province', 'district',
         'commune', 'notes', 'overall_confidence', 'provider_response_id', 'result_payload',
         'input_tokens', 'output_tokens', 'total_tokens', 'error', 'requested_by', 'processed_at',
@@ -48,6 +49,11 @@ class SocialOrderExtraction extends Model
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(SocialConversation::class, 'social_conversation_id');
+    }
+
+    public function profile(): BelongsTo
+    {
+        return $this->belongsTo(SocialAiExtractionProfile::class, 'social_ai_extraction_profile_id');
     }
 
     public function items(): HasMany

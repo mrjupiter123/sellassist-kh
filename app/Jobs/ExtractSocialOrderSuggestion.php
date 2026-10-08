@@ -39,7 +39,7 @@ final class ExtractSocialOrderSuggestion implements ShouldBeUnique, ShouldQueue
 
     public function handle(OpenAiSocialOrderExtractor $extractor): void
     {
-        $extraction = SocialOrderExtraction::query()->findOrFail($this->extractionId);
+        $extraction = SocialOrderExtraction::query()->with('profile')->findOrFail($this->extractionId);
         if ($extraction->status === OrderExtractionStatus::Ready) {
             return;
         }

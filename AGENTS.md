@@ -54,6 +54,8 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - AI suggestions must never link customers or create, confirm, amend, pay, ship, or otherwise mutate an order without the existing seller-reviewed workflow.
 - AI quality reviews are evaluation records only. Encrypt correction notes, keep token usage separate from monetary estimates, and never use a review to trigger customer, order, inventory, payment, or shipment mutations.
 - AI quality dashboards may expose aggregate status, confidence, model, token, and review metadata only. Never decrypt or display customer messages, extracted identity/address fields, provider payloads, or correction notes in operational analytics.
+- AI prompt/model profiles are immutable versions. Create a new version for every change, activate exactly one managed profile through the Social-domain action, and preserve the profile, prompt version, model, and effective-instructions hash on every extraction. Rollback means reactivating an older version, never rewriting extraction history.
+- Administrator profile guidance is additive only. The permanent extraction safety and seller-review instructions must always be prepended and cannot be disabled from the UI.
 
 ## Development practices
 
