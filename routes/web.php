@@ -21,6 +21,7 @@ use App\Http\Controllers\RefundController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\ShipmentIntegrationController;
 use App\Http\Controllers\ShipmentStatusController;
+use App\Http\Controllers\SocialAiAlertPreferenceController;
 use App\Http\Controllers\SocialAiEvaluationController;
 use App\Http\Controllers\SocialAiExtractionProfileController;
 use App\Http\Controllers\SocialAiProfileReleaseController;
@@ -50,6 +51,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::put('/notifications/ai-alert-preference', [SocialAiAlertPreferenceController::class, 'update'])->middleware('permission:social.ai.manage')->name('notifications.ai-alert-preference.update');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
 
     Route::get('/dashboard', DashboardController::class)

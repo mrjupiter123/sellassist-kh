@@ -13,12 +13,14 @@ use App\Domain\OrderActivity\Models\OrderActivity;
 use App\Domain\OrderReturn\Models\OrderReturn;
 use App\Domain\Payment\Models\Payment;
 use App\Domain\Payment\Models\Refund;
+use App\Domain\Social\Models\SocialAiAlertPreference;
 use App\Domain\Social\Models\SocialConversation;
 use App\Domain\Social\Models\SocialConversationRead;
 use App\Support\HasPublicUuid;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -117,5 +119,10 @@ class User extends Authenticatable
     public function socialConversationReads(): HasMany
     {
         return $this->hasMany(SocialConversationRead::class);
+    }
+
+    public function socialAiAlertPreference(): HasOne
+    {
+        return $this->hasOne(SocialAiAlertPreference::class);
     }
 }

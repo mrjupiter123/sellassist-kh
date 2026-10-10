@@ -20,9 +20,12 @@ use App\Domain\Social\Models\SocialMessage;
 use App\Domain\Social\Models\SocialOrderExtraction;
 use App\Domain\Social\Services\AiExtractionPrompt;
 use App\Jobs\ExtractSocialOrderSuggestion;
+use App\Jobs\SendAiReleaseDegradationEmail;
+use App\Mail\AiReleaseDegradationMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -186,6 +189,12 @@ class SocialAiExtractionProfileTest extends TestCase
             'social.ai.release_monitoring.minimum_reviews' => 5,
         ]);
         $admin = $this->userWithPermissions(['social.ai.manage']);
+        $defaultEmailAdmin = $this->userWithPermissions(['social.ai.manage']);
+        $this->actingAs($admin)->put(route('notifications.ai-alert-preference.update'), [
+            'email_enabled' => true,
+        ])->assertRedirect(route('notifications.index'));
+        $this->assertTrue($admin->socialAiAlertPreference()->firstOrFail()->email_enabled);
+        Queue::fake();
         $conversation = $this->conversationWithMessage();
         $baseline = $this->profile($admin->id, 'v-baseline', 'model-one', 'Baseline guidance.');
         $candidate = $this->profile($admin->id, 'v-candidate', 'model-two', 'Candidate guidance.', true);
@@ -231,14 +240,34 @@ class SocialAiExtractionProfileTest extends TestCase
             ->assertDontSeeText('Profile Test Customer');
 
         $this->artisan('social:ai:monitor-releases')->assertSuccessful();
-        $this->assertDatabaseCount('notifications', 1);
+        $this->assertDatabaseCount('notifications', 2);
+        Queue::assertPushed(SendAiReleaseDegradationEmail::class, 1);
+        $this->assertNull($defaultEmailAdmin->socialAiAlertPreference()->first());
+        $this->assertSame(1, $defaultEmailAdmin->notifications()->count());
         $this->assertDatabaseHas('social_ai_profile_release_alerts', [
             'social_ai_profile_release_id' => $release->id,
             'status' => 'degraded',
         ]);
 
         $this->artisan('social:ai:monitor-releases')->assertSuccessful();
-        $this->assertDatabaseCount('notifications', 1);
+        $this->assertDatabaseCount('notifications', 2);
+        Queue::assertPushed(SendAiReleaseDegradationEmail::class, 1);
+
+        Mail::fake();
+        $emailJob = Queue::pushed(SendAiReleaseDegradationEmail::class)->first();
+        $emailJob->handle();
+        Mail::assertSent(AiReleaseDegradationMail::class, function (AiReleaseDegradationMail $mail) use ($admin): bool {
+            return $mail->hasTo($admin->email)
+                && str_contains($mail->render(), 'manual review')
+                && ! str_contains($mail->render(), 'Profile Test Customer');
+        });
+
+        $this->actingAs($admin)->put(route('notifications.ai-alert-preference.update'), [
+            'email_enabled' => false,
+        ])->assertRedirect();
+        Mail::fake();
+        $emailJob->handle();
+        Mail::assertNothingSent();
 
         $notification = $admin->notifications()->sole();
         $this->actingAs($admin)->get(route('notifications.index'))
@@ -248,6 +277,20 @@ class SocialAiExtractionProfileTest extends TestCase
             ->assertDontSeeText('Profile Test Customer');
         $this->actingAs($admin)->post(route('notifications.read', $notification->id))->assertRedirect();
         $this->assertNotNull($notification->fresh()->read_at);
+    }
+
+    public function test_only_ai_administrators_can_change_their_email_alert_preference(): void
+    {
+        $staff = $this->userWithPermissions(['social.extract']);
+        $admin = $this->userWithPermissions(['social.ai.manage']);
+
+        $this->actingAs($staff)->put(route('notifications.ai-alert-preference.update'), [
+            'email_enabled' => true,
+        ])->assertForbidden();
+        $this->actingAs($admin)->put(route('notifications.ai-alert-preference.update'), [
+            'email_enabled' => 'invalid',
+        ])->assertSessionHasErrors('email_enabled');
+        $this->assertDatabaseCount('social_ai_alert_preferences', 0);
     }
 
     private function profile(int $userId, string $version, string $model, string $instructions, bool $active = false): SocialAiExtractionProfile

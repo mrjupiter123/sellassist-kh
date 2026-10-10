@@ -69,6 +69,8 @@ On shared cPanel hosting, the existing once-per-minute `--stop-when-empty` cron 
 
 The hourly release-degradation monitor is registered with Laravel's scheduler. Configure `php artisan schedule:run` once per minute on cPanel. A degraded release creates one database notification for each active administrator with `social.ai.manage`; the same set of degradation reasons is deduplicated until the condition resolves or materially changes. Notifications are advisory and never execute rollback.
 
+AI administrators can opt into email delivery from **Alerts**. Email is off by default. An opted-in administrator receives a queued email for a new degradation event, and the worker checks their active account, permission, and preference again before sending. The message contains the profile name, aggregate degradation reasons, and a link to the release monitor; it does not include customer data. Configure Laravel mail credentials on the server to deliver mail. With the default `MAIL_MAILER=log`, messages are written to the application log instead of reaching an inbox. Database alerts remain available whether or not email is enabled.
+
 ## Operational flow
 
 1. A seller with `social.extract` opens an unconverted conversation.

@@ -7,6 +7,7 @@ namespace App\Domain\Social\Actions;
 use App\Domain\Social\Models\SocialAiProfileRelease;
 use App\Domain\Social\Models\SocialAiProfileReleaseAlert;
 use App\Domain\Social\Services\PostReleaseMonitoringService;
+use App\Jobs\SendAiReleaseDegradationEmail;
 use App\Models\User;
 use App\Notifications\AiReleaseDegradationDetected;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,10 @@ final class CheckAiReleaseDegradation
         $fingerprint = $summary['status'] === 'degraded'
             ? hash('sha256', json_encode($summary['reasons'], JSON_THROW_ON_ERROR))
             : null;
-        $administrators = User::permission('social.ai.manage')->where('active', true)->get();
+        $administrators = User::permission('social.ai.manage')
+            ->where('active', true)
+            ->with('socialAiAlertPreference')
+            ->get();
         $notified = 0;
 
         DB::transaction(function () use ($release, $summary, $fingerprint, $administrators, &$notified): void {
@@ -47,6 +51,16 @@ final class CheckAiReleaseDegradation
             if ($summary['status'] === 'degraded' && ! $unchangedDegradation) {
                 Notification::send($administrators, new AiReleaseDegradationDetected($release, $summary['reasons']));
                 $notified = $administrators->count();
+
+                foreach ($administrators as $administrator) {
+                    if ($administrator->socialAiAlertPreference?->email_enabled) {
+                        SendAiReleaseDegradationEmail::dispatch(
+                            $administrator->id,
+                            $release->id,
+                            $summary['reasons'],
+                        )->onQueue('integrations')->afterCommit();
+                    }
+                }
             }
 
             SocialAiProfileReleaseAlert::query()->updateOrCreate(

@@ -8,6 +8,23 @@
     @if (auth()->user()->unreadNotifications()->exists())<form method="POST" action="{{ route('notifications.read-all') }}">@csrf<button class="btn btn-outline-secondary">Mark all as read</button></form>@endif
 </div>
 
+@can('social.ai.manage')
+<form method="POST" action="{{ route('notifications.ai-alert-preference.update') }}" class="card shadow-sm mb-4">
+    @csrf
+    @method('PUT')
+    <div class="card-header bg-white fw-semibold">AI release alert delivery</div>
+    <div class="card-body">
+        <p class="small text-muted">Degradation alerts always appear here. Email is optional and uses your account email address.</p>
+        <input type="hidden" name="email_enabled" value="0">
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="ai-alert-email" name="email_enabled" value="1" @checked($aiAlertPreference?->email_enabled)>
+            <label class="form-check-label" for="ai-alert-email">Email me when an AI release degrades</label>
+        </div>
+    </div>
+    <div class="card-footer bg-white text-end"><button class="btn btn-outline-primary btn-sm">Save preference</button></div>
+</form>
+@endcan
+
 <div class="card shadow-sm">
     <div class="list-group list-group-flush">
         @forelse ($notifications as $notification)

@@ -14,6 +14,9 @@ class NotificationController extends Controller
     {
         return view('notifications.index', [
             'notifications' => $request->user()->notifications()->latest()->paginate(20),
+            'aiAlertPreference' => $request->user()->can('social.ai.manage')
+                ? $request->user()->socialAiAlertPreference()->first()
+                : null,
         ]);
     }
 

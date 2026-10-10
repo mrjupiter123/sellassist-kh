@@ -88,6 +88,8 @@ Add a second once-per-minute cron entry for Laravel's scheduler. It performs the
 * * * * * cd /home/CPANEL_USER/sellassist && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
+If an administrator enables **Alerts → Email me when an AI release degrades**, configure Laravel's `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME` using the mail settings for your cPanel account. Keep credentials in `.env` only. The default `MAIL_MAILER=log` does not deliver email. The integrations queue cron above processes queued alert emails.
+
 Use the PHP binary path shown by `which php`; hosts may use a versioned path. Open **Operations** after deployment to confirm jobs do not remain pending and to inspect failures. A persistent worker is preferable where the host supports one.
 
 ## Safe application update
