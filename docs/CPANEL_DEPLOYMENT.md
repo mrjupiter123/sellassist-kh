@@ -92,6 +92,8 @@ If an administrator enables **Alerts → Email me when an AI release degrades**,
 
 To verify mail delivery, sign in as an AI administrator and click **Alerts → Send test email to my account**. The request only queues a test email; it does not turn on alert emails or simulate degradation. Allow the integrations queue cron to run, then check the account inbox and spam folder. If nothing arrives, inspect **Operations → Failed jobs** and the Laravel log, verify the SMTP and sender settings, and run `php artisan optimize:clear` after changing `.env`. A success banner means the test was queued, not necessarily delivered. The button is limited to three requests per minute.
 
+The same Alerts page shows the ten latest email attempts for your account. **Queued** means the worker has not completed it, **Skipped** means authorization or alert conditions changed, **Failed after retries** means the queue job exhausted its attempts, and **Handed to mailer** means Laravel's configured transport accepted it—not that the inbox received it. A log mailer can produce **Handed to mailer** without sending anything externally. The history contains no email body, SMTP credentials, or raw exception. Deploy the new migration with `php artisan migrate --force` before using this screen.
+
 Use the PHP binary path shown by `which php`; hosts may use a versioned path. Open **Operations** after deployment to confirm jobs do not remain pending and to inspect failures. A persistent worker is preferable where the host supports one.
 
 ## Safe application update

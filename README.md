@@ -115,6 +115,10 @@ The Laravel scheduler performs hourly AI release-degradation checks. Run `php ar
 
 AI administrators can enable email delivery under **Alerts**. In-app database alerts remain available for every administrator. Email defaults to off and is processed by the `integrations` queue. The default `MAIL_MAILER=log` records mail locally; configure a working SMTP mailer and sender address on cPanel to deliver emails. An administrator can use **Send test email to my account** from Alerts before enabling notifications; this queues a harmless test message, limited to three requests per minute.
 
+The Alerts page shows each administrator's ten most recent AI alert/test email attempts. Statuses distinguish queued, skipped, failed-after-retries, and handed to the mail transport. The history stores no message body, SMTP credentials, or raw transport errors; mail-transport acceptance does not prove inbox delivery.
+
+The Alerts page shows each administrator's ten most recent AI alert/test email attempts. Statuses distinguish queued, skipped, failed-after-retries, and handed to the mail transport. The history stores no message body, SMTP credentials, or raw transport errors; mail-transport acceptance does not prove inbox delivery.
+
 Messenger and Telegram webhooks, social replies, and AI order suggestions use the same `integrations` queue. Administrators can monitor pending/failed jobs, recent delivery failures, delivery/social webhook health, and aggregate AI extraction quality under **Operations**. The AI dashboard supports 7/30/90-day views for success, confidence, seller feedback, model performance, and token usage without displaying customer messages or encrypted correction notes.
 
 ## Stabilization runbooks

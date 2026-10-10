@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Social\Actions;
 
+use App\Domain\Social\Enums\AiAlertMailStatus;
+use App\Domain\Social\Enums\AiAlertMailType;
+use App\Domain\Social\Models\AiAlertMailAttempt;
 use App\Domain\Social\Models\SocialAiProfileRelease;
 use App\Domain\Social\Models\SocialAiProfileReleaseAlert;
 use App\Domain\Social\Services\PostReleaseMonitoringService;
@@ -54,10 +57,18 @@ final class CheckAiReleaseDegradation
 
                 foreach ($administrators as $administrator) {
                     if ($administrator->socialAiAlertPreference?->email_enabled) {
+                        $attempt = AiAlertMailAttempt::query()->create([
+                            'user_id' => $administrator->id,
+                            'release_id' => $release->id,
+                            'type' => AiAlertMailType::Degradation,
+                            'status' => AiAlertMailStatus::Queued,
+                        ]);
+
                         SendAiReleaseDegradationEmail::dispatch(
                             $administrator->id,
                             $release->id,
                             $summary['reasons'],
+                            $attempt->id,
                         )->onQueue('integrations')->afterCommit();
                     }
                 }

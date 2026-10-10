@@ -65,6 +65,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Scheduled degradation alerts are database notifications for active AI administrators. Deduplicate unchanged degradation reasons, never include customer content, and keep alert delivery separate from the manual rollback action.
 - AI release alert email is opt-in per administrator. Queue it on `integrations`, check active permission and the current preference at send time, and keep the in-app database notification regardless of email preference.
 - Administrator mail tests are rate-limited and queued on `integrations`; they must not enable alert email or simulate a degradation event.
+- AI alert mail attempts store metadata and status only. Do not persist message bodies, SMTP credentials, or raw transport exceptions; mailer acceptance is not proof of inbox delivery.
 
 ## Development practices
 

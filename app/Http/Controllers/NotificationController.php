@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Social\Models\AiAlertMailAttempt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,6 +18,9 @@ class NotificationController extends Controller
             'aiAlertPreference' => $request->user()->can('social.ai.manage')
                 ? $request->user()->socialAiAlertPreference()->first()
                 : null,
+            'aiAlertMailAttempts' => $request->user()->can('social.ai.manage')
+                ? AiAlertMailAttempt::query()->where('user_id', $request->user()->id)->latest()->limit(10)->get()
+                : collect(),
         ]);
     }
 

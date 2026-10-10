@@ -31,6 +31,29 @@
     <button class="btn btn-outline-secondary btn-sm">Send test email to my account</button>
     <span class="small text-muted ms-2">Queued separately from your alert preference; limited to three requests per minute.</span>
 </form>
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white fw-semibold">Recent AI alert email attempts</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead><tr><th scope="col">Requested</th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Processed</th></tr></thead>
+                <tbody>
+                    @forelse ($aiAlertMailAttempts as $attempt)
+                        <tr>
+                            <td>{{ $attempt->created_at->format('d M Y H:i') }}</td>
+                            <td>{{ $attempt->type->label() }}</td>
+                            <td>{{ $attempt->status->label() }}</td>
+                            <td>{{ $attempt->processed_at?->format('d M Y H:i') ?? '—' }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" class="text-muted text-center py-3">No email attempts yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white small text-muted">“Handed to mailer” means the configured mail transport accepted the message; inbox delivery is not guaranteed. A log mailer writes it to the application log.</div>
+</div>
 @endcan
 
 <div class="card shadow-sm">

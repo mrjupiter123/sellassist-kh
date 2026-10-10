@@ -73,6 +73,8 @@ AI administrators can opt into email delivery from **Alerts**. Email is off by d
 
 The Alerts page also offers an administrator-only, rate-limited test email. It uses the same `integrations` queue and configured mail transport, but does not change alert preferences or create an AI degradation alert. The queued job rechecks that the recipient remains active and authorized before sending.
 
+Each queued alert or test email creates a minimal attempt record. The recipient can see their ten latest statuses under Alerts. Jobs mark an attempt skipped when it is no longer eligible, handed to the mailer after transport acceptance, or failed after the queue exhausts retries. Manually retried failed jobs can advance to the final result; already-sent jobs do not resend. No customer content, email body, transport exception, or credential is stored in the attempt history.
+
 ## Operational flow
 
 1. A seller with `social.extract` opens an unconverted conversation.

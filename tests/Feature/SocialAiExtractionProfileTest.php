@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Domain\Social\Enums\AiAlertMailStatus;
 use App\Domain\Social\Enums\AiProfileReleaseType;
 use App\Domain\Social\Enums\ConversationStatus;
 use App\Domain\Social\Enums\MessageDirection;
@@ -11,6 +12,7 @@ use App\Domain\Social\Enums\MessageType;
 use App\Domain\Social\Enums\OrderExtractionReviewVerdict;
 use App\Domain\Social\Enums\OrderExtractionStatus;
 use App\Domain\Social\Enums\SocialPlatform;
+use App\Domain\Social\Models\AiAlertMailAttempt;
 use App\Domain\Social\Models\SocialAiExtractionProfile;
 use App\Domain\Social\Models\SocialAiProfileRelease;
 use App\Domain\Social\Models\SocialChannel;
@@ -242,6 +244,9 @@ class SocialAiExtractionProfileTest extends TestCase
         $this->artisan('social:ai:monitor-releases')->assertSuccessful();
         $this->assertDatabaseCount('notifications', 2);
         Queue::assertPushed(SendAiReleaseDegradationEmail::class, 1);
+        $attempt = AiAlertMailAttempt::query()->sole();
+        $this->assertSame(AiAlertMailStatus::Queued, $attempt->status);
+        $this->assertSame($release->id, $attempt->release_id);
         $this->assertNull($defaultEmailAdmin->socialAiAlertPreference()->first());
         $this->assertSame(1, $defaultEmailAdmin->notifications()->count());
         $this->assertDatabaseHas('social_ai_profile_release_alerts', [
@@ -256,6 +261,7 @@ class SocialAiExtractionProfileTest extends TestCase
         Mail::fake();
         $emailJob = Queue::pushed(SendAiReleaseDegradationEmail::class)->first();
         $emailJob->handle();
+        $this->assertSame(AiAlertMailStatus::Sent, $attempt->refresh()->status);
         Mail::assertSent(AiReleaseDegradationMail::class, function (AiReleaseDegradationMail $mail) use ($admin): bool {
             return $mail->hasTo($admin->email)
                 && str_contains($mail->render(), 'manual review')
