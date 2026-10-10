@@ -22,6 +22,7 @@ use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\ShipmentIntegrationController;
 use App\Http\Controllers\ShipmentStatusController;
 use App\Http\Controllers\SocialAiAlertPreferenceController;
+use App\Http\Controllers\SocialAiAlertTestEmailController;
 use App\Http\Controllers\SocialAiEvaluationController;
 use App\Http\Controllers\SocialAiExtractionProfileController;
 use App\Http\Controllers\SocialAiProfileReleaseController;
@@ -52,6 +53,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::put('/notifications/ai-alert-preference', [SocialAiAlertPreferenceController::class, 'update'])->middleware('permission:social.ai.manage')->name('notifications.ai-alert-preference.update');
+    Route::post('/notifications/ai-alert-test-email', SocialAiAlertTestEmailController::class)->middleware(['permission:social.ai.manage', 'throttle:3,1'])->name('notifications.ai-alert-test-email');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
 
     Route::get('/dashboard', DashboardController::class)

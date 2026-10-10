@@ -64,7 +64,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Post-release monitoring uses aggregate extraction status, confidence, token, and seller-review metrics only. Degradation may recommend manual rollback review but must never activate or roll back a profile automatically.
 - Scheduled degradation alerts are database notifications for active AI administrators. Deduplicate unchanged degradation reasons, never include customer content, and keep alert delivery separate from the manual rollback action.
 - AI release alert email is opt-in per administrator. Queue it on `integrations`, check active permission and the current preference at send time, and keep the in-app database notification regardless of email preference.
-- AI release alert email is opt-in per administrator. Queue it on `integrations`, check active permission and the current preference at send time, and keep the in-app database notification regardless of email preference.
+- Administrator mail tests are rate-limited and queued on `integrations`; they must not enable alert email or simulate a degradation event.
 
 ## Development practices
 

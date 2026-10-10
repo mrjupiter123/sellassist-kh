@@ -71,6 +71,8 @@ The hourly release-degradation monitor is registered with Laravel's scheduler. C
 
 AI administrators can opt into email delivery from **Alerts**. Email is off by default. An opted-in administrator receives a queued email for a new degradation event, and the worker checks their active account, permission, and preference again before sending. The message contains the profile name, aggregate degradation reasons, and a link to the release monitor; it does not include customer data. Configure Laravel mail credentials on the server to deliver mail. With the default `MAIL_MAILER=log`, messages are written to the application log instead of reaching an inbox. Database alerts remain available whether or not email is enabled.
 
+The Alerts page also offers an administrator-only, rate-limited test email. It uses the same `integrations` queue and configured mail transport, but does not change alert preferences or create an AI degradation alert. The queued job rechecks that the recipient remains active and authorized before sending.
+
 ## Operational flow
 
 1. A seller with `social.extract` opens an unconverted conversation.

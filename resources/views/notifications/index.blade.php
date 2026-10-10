@@ -15,6 +15,9 @@
     <div class="card-header bg-white fw-semibold">AI release alert delivery</div>
     <div class="card-body">
         <p class="small text-muted">Degradation alerts always appear here. Email is optional and uses your account email address.</p>
+        @if (config('mail.default') === 'log')
+            <div class="alert alert-warning small mb-3">The mailer is set to log. Test and alert emails will be written to the application log, not delivered to an inbox.</div>
+        @endif
         <input type="hidden" name="email_enabled" value="0">
         <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" id="ai-alert-email" name="email_enabled" value="1" @checked($aiAlertPreference?->email_enabled)>
@@ -22,6 +25,11 @@
         </div>
     </div>
     <div class="card-footer bg-white text-end"><button class="btn btn-outline-primary btn-sm">Save preference</button></div>
+</form>
+<form method="POST" action="{{ route('notifications.ai-alert-test-email') }}" class="mb-4">
+    @csrf
+    <button class="btn btn-outline-secondary btn-sm">Send test email to my account</button>
+    <span class="small text-muted ms-2">Queued separately from your alert preference; limited to three requests per minute.</span>
 </form>
 @endcan
 
