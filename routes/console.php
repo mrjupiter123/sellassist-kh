@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::command('social:ai:monitor-releases')
     ->hourly()
     ->withoutOverlapping(55);
+
+Schedule::command('operations:monitor-queues')
+    ->everyFiveMinutes()
+    ->withoutOverlapping(4);

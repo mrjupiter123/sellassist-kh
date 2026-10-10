@@ -5,6 +5,27 @@
 @section('content')
 <div class="mb-4"><h1 class="h3 mb-1">Operations health</h1><p class="text-muted mb-0">Queue and integration signals for administrators.</p></div>
 
+@if (config('queue.default') === 'database')
+    <div class="row g-3 mb-4">
+        @foreach (['integrations', 'default'] as $queueName)
+            @php($queueAlert = $queueStallAlerts->get($queueName))
+            @php($queueCheckOverdue = $queueAlert?->last_checked_at?->lt(now()->subMinutes(15)) ?? true)
+            <div class="col-md-6">
+                <div class="alert {{ $queueAlert?->status === \App\Domain\Operations\Enums\QueueHealthStatus::Stalled ? 'alert-danger' : ($queueCheckOverdue ? 'alert-warning' : 'alert-secondary') }} mb-0 h-100">
+                    <div class="fw-semibold">{{ ucfirst($queueName) }} queue: {{ $queueAlert?->status->value ?? 'not checked yet' }}</div>
+                    @if ($queueAlert?->status === \App\Domain\Operations\Enums\QueueHealthStatus::Stalled)
+                        <div>{{ $queueAlert->stale_jobs }} ready job(s) have waited at least {{ max(1, (int) config('operations.queue_stale_minutes', 15)) }} minutes. Check the queue cron; do not retry jobs blindly.</div>
+                    @endif
+                    @if ($queueCheckOverdue)
+                        <div>Queue monitor overdue. Check the Laravel scheduler cron.</div>
+                    @endif
+                    <div class="small mt-1">Last checked: {{ $queueAlert?->last_checked_at?->format('d M Y H:i') ?? 'Never — check the scheduler cron' }}</div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+@endif
+
 <div class="row g-3 mb-4">
     @foreach ([
         'Pending jobs' => $health['pending_jobs'],

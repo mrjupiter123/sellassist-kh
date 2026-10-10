@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Operations\Models\QueueStallAlert;
 use App\Domain\Operations\Services\AiExtractionQualityService;
 use App\Domain\Operations\Services\OperationalHealthService;
 use App\Http\Requests\OperationsQualityRequest;
@@ -20,6 +21,7 @@ class OperationsController extends Controller
 
         return view('operations.index', [
             'health' => $health->summary(),
+            'queueStallAlerts' => QueueStallAlert::query()->whereIn('queue', ['integrations', 'default'])->get()->keyBy('queue'),
             'failedJobs' => $health->failedJobs(),
             'aiQuality' => $quality->summary($days),
             'aiModels' => $quality->modelBreakdown($days),

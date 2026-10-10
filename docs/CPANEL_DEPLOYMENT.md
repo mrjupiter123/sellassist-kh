@@ -82,11 +82,13 @@ If the plan does not provide Supervisor, add a cPanel cron job every minute:
 * * * * * cd /home/CPANEL_USER/sellassist && /usr/local/bin/php artisan queue:work --queue=integrations,default --stop-when-empty --tries=3 --timeout=240 >> /dev/null 2>&1
 ```
 
-Add a second once-per-minute cron entry for Laravel's scheduler. It performs the hourly AI release-degradation check and safely exits when nothing is due:
+Add a second once-per-minute cron entry for Laravel's scheduler. It performs the hourly AI release-degradation check and the five-minute database-queue health check, then exits when nothing is due:
 
 ```cron
 * * * * * cd /home/CPANEL_USER/sellassist && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
+
+The queue monitor flags ready `integrations` or `default` jobs waiting at least 15 minutes (`OPERATIONS_QUEUE_STALE_MINUTES` in `.env`). It sends a deduplicated in-app notification to active Operations administrators and clears the warning after recovery. It never retries or deletes a job. After migration, run `php artisan operations:monitor-queues` once to verify the check, then open **Operations** to see its last-run time. If the scheduler cron also stops, no new notification can be created; the Operations page will flag an overdue check when visited. Use an external uptime check for unattended detection of a fully stopped site or cron.
 
 If an administrator enables **Alerts → Email me when an AI release degrades**, configure Laravel's `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME` using the mail settings for your cPanel account. Keep credentials in `.env` only. The default `MAIL_MAILER=log` does not deliver email. The integrations queue cron above processes queued alert emails.
 
