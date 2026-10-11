@@ -15,6 +15,7 @@ Staging must use PHP 8.3+ and MySQL 8+ or MariaDB 10.6+. Use a separate database
 Test a narrow phone and a tablet in portrait and landscape. Have a real seller complete these tasks without coaching:
 
 - sign in, find/create a customer, and enter a multi-item order;
+- open a customer with more than 15 orders, check both history pages, and confirm a customer-only staff account cannot see order history;
 - repeat a prior order as a reviewed draft; verify current prices, unavailable-item warnings, and that old payments/discounts/notes are not copied;
 - filter the order list by payment, status, source, currency, and a same-day date range on a phone; verify matching orders only and that clearing filters restores the list;
 - export a filtered order CSV; verify it contains only matching orders, omits phone numbers and addresses, and opens safely in the seller's spreadsheet app;

@@ -33,6 +33,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Product returns go through `CreateOrderReturn`; cumulative return quantities cannot exceed the original order item quantity.
 - Restocked returns must create stock movements through `AdjustStock`. Damaged/non-sellable returns remain auditable without changing stock.
 - Public routes should use UUIDs rather than sequential database IDs where practical.
+- Customer pages must not expose order history to users lacking `orders.view`; customer order history remains scoped and paginated.
 - User lifecycle changes must preserve at least one active administrator; inactive users cannot authenticate.
 - Shipment status changes go through `ChangeShipmentStatus`; never update shipment or order delivery states directly.
 - Shipment COD is calculated from the server-side outstanding order balance. COD reconciliation goes through `RecordCodRemittance` and creates a linked payment.

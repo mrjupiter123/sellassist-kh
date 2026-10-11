@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Customer\Actions\CreateCustomer;
+use App\Domain\Customer\Actions\ListCustomerOrders;
 use App\Domain\Customer\Actions\UpdateCustomer;
 use App\Domain\Customer\Enums\CustomerSource;
 use App\Domain\Customer\Models\Customer;
@@ -12,6 +13,7 @@ use App\Http\Requests\Customer\StoreCustomerRequest;
 use App\Http\Requests\Customer\UpdateCustomerRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
@@ -48,11 +50,12 @@ class CustomerController extends Controller
         return redirect()->route('customers.show', $customer)->with('success', 'Customer created successfully.');
     }
 
-    public function show(Customer $customer): View
+    public function show(Customer $customer, ListCustomerOrders $action): View
     {
-        $customer->load(['orders' => fn ($query) => $query->latest()->limit(10)]);
-
-        return view('customers.show', compact('customer'));
+        return view('customers.show', [
+            'customer' => $customer,
+            'orders' => Gate::allows('orders.view') ? $action->execute($customer) : null,
+        ]);
     }
 
     public function edit(Customer $customer): View

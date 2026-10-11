@@ -74,11 +74,13 @@ Only `draft` and `new` orders may be amended. Catalog prices are reloaded and to
 
 Sellers with order view/create permissions can open **Repeat as draft** on an existing order. It pre-fills the current customer and active catalog items for review, warns about unavailable items or insufficient stock, and resets source to Manual plus payments, discounts, delivery fee, and notes. Opening the form writes nothing. Saving uses the normal `CreateOrder` action, which re-resolves current catalog prices, recalculates totals, and does not deduct stock for a draft.
 
-The order worklist offers quick links for unpaid, ready-to-pack, and ready-to-ship orders. Sellers can also combine validated status, payment, source, currency, date, and search filters. Search checks historical customer snapshots as well as current customer details; listing orders does not mutate any records.
-
 The order worklist offers quick links for unpaid, ready-to-pack, and ready-to-ship orders. Sellers can combine validated status, payment, source, currency, date, and search filters. Search checks historical customer snapshots as well as current customer details; listing orders does not mutate any records. Authorized sellers can download a filtered CSV of up to 5,000 orders; it omits phone numbers, addresses, and notes, and escapes spreadsheet formula prefixes. Narrow the filters before exporting larger datasets.
 
-The order worklist offers quick links for unpaid, ready-to-pack, and ready-to-ship orders. Sellers can combine validated status, payment, source, currency, date, and search filters. Search checks historical customer snapshots as well as current customer details; listing orders does not mutate any records. Authorized sellers can download a filtered CSV of up to 5,000 orders; it omits phone numbers, addresses, and notes, and escapes spreadsheet formula prefixes. Narrow the filters before exporting larger datasets.
+Customer details include paginated order history for users with both `customers.view` and `orders.view`. Users who can view customers but not orders see contact details only. Historical orders remain scoped to that customer and linked by public UUID.
+
+Customer details include paginated order history for users with both `customers.view` and `orders.view`. Users who can view customers but not orders see contact details only. Historical orders remain scoped to that customer and linked by public UUID.
+
+Customer details include paginated order history for users with both `customers.view` and `orders.view`. Users who can view customers but not orders see contact details only. Historical orders remain scoped to that customer and linked by public UUID.
 
 Order activities are written inside the same transactions as creation, amendments, status changes, payments, returns, and refunds. Customer contact and address data is snapshotted on each order so historical receipts remain stable. Variant maintenance cannot alter stock; all stock changes continue through the inventory domain.
 
