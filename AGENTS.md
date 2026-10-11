@@ -26,6 +26,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Confirmation stock deduction and cancellation restoration must remain idempotent.
 - Payment totals cannot exceed the order total unless an explicit overpayment feature is introduced.
 - Only draft and new orders may be amended. Amendments must re-resolve catalog prices and recalculate totals server-side.
+- Repeating an order only prepares a reviewed draft form. Never copy historical prices, payments, discounts, delivery fees, notes, or inactive catalog items into a new order; saving still goes through `CreateOrder`.
 - Never delete or mutate historical payments to represent a refund. Refunds go through `RecordRefund` and remain linked to the original payment.
 - Refund totals cannot exceed the unrefunded amount of the selected payment.
 - Product returns go through `CreateOrderReturn`; cumulative return quantities cannot exceed the original order item quantity.

@@ -1,16 +1,21 @@
 @extends('layouts.app')
 @php($editing = $order !== null)
-@section('title', ($editing ? 'Amend order' : 'New order').' · SellAssist KH')
+@php($repeating = $repeatPreview !== null)
+@section('title', ($editing ? 'Amend order' : ($repeating ? 'Repeat order' : 'New order')).' · SellAssist KH')
 @section('content')
-<div class="mb-4"><a href="{{ $editing ? route('orders.show', $order) : route('orders.index') }}">← {{ $editing ? $order->order_number : 'Orders' }}</a><h1 class="h3 mt-2 mb-1">{{ $editing ? 'Amend order' : 'New order' }}</h1><p class="text-secondary mb-0">Prices and totals are verified again by the server when you save.</p></div>
+<div class="mb-4"><a href="{{ $editing ? route('orders.show', $order) : route('orders.index') }}">← {{ $editing ? $order->order_number : 'Orders' }}</a><h1 class="h3 mt-2 mb-1">{{ $editing ? 'Amend order' : ($repeating ? 'Repeat as draft' : 'New order') }}</h1><p class="text-secondary mb-0">Prices and totals are verified again by the server when you save.</p></div>
+@if($repeating)
+    <div class="alert alert-info">Starting from {{ $repeatPreview['order_number'] }}. Review current catalog prices, stock, and customer details. Source is reset to Manual; payments, discounts, delivery fee, and notes were not copied. Nothing has been saved yet.</div>
+    @if($repeatPreview['warnings'] !== [])<div class="alert alert-warning"><strong>Items needing review</strong><ul class="mb-0 mt-2">@foreach($repeatPreview['warnings'] as $warning)<li>{{ $warning }}</li>@endforeach</ul></div>@endif
+@endif
 <form method="POST" action="{{ $editing ? route('orders.update', $order) : route('orders.store') }}" x-data="orderForm">@csrf @if($editing) @method('PUT') @endif
 <div class="row g-4">
     <div class="col-xl-8">
         <div class="card mb-4"><div class="card-body"><div class="row g-3">
-            <div class="col-md-6"><label class="form-label">Customer *</label><select class="form-select" name="customer_id" required><option value="">Choose a customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id', $order?->customer_id) === (string) $customer->id)>{{ $customer->name }}{{ $customer->phone ? ' · '.$customer->phone : '' }}</option>@endforeach</select><div class="form-text"><a href="{{ route('customers.create') }}">Add a new customer</a> if needed.</div></div>
+            <div class="col-md-6"><label class="form-label">Customer *</label><select class="form-select" name="customer_id" required><option value="">Choose a customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id', $order?->customer_id ?? $repeatPreview['customer_id'] ?? null) === (string) $customer->id)>{{ $customer->name }}{{ $customer->phone ? ' · '.$customer->phone : '' }}</option>@endforeach</select><div class="form-text"><a href="{{ route('customers.create') }}">Add a new customer</a> if needed.</div></div>
             <div class="col-md-3"><label class="form-label">Source *</label><select class="form-select" name="source" required>@foreach($sources as $source)<option value="{{ $source->value }}" @selected(old('source', $order?->source->value ?? 'manual') === $source->value)>{{ $source->label() }}</option>@endforeach</select></div>
             <div class="col-md-3"><label class="form-label">Currency *</label><select class="form-select" name="currency" x-model="currency" required>@foreach($currencies as $currency)<option value="{{ $currency->value }}">{{ $currency->value }}</option>@endforeach</select></div>
-            <div class="col-md-4"><label class="form-label">Status *</label><select class="form-select" name="status"><option value="new" @selected(old('status', $order?->status->value ?? 'new') === 'new')>New</option><option value="draft" @selected(old('status', $order?->status->value) === 'draft')>Draft</option></select></div>
+            <div class="col-md-4"><label class="form-label">Status *</label>@if($repeating)<input type="hidden" name="status" value="draft"><input class="form-control" value="Draft" readonly>@else<select class="form-select" name="status"><option value="new" @selected(old('status', $order?->status->value ?? 'new') === 'new')>New</option><option value="draft" @selected(old('status', $order?->status->value) === 'draft')>Draft</option></select>@endif</div>
             <div class="col-md-8"><label class="form-label">Notes</label><input class="form-control" name="notes" value="{{ old('notes', $order?->notes) }}" placeholder="Delivery instructions or customer request"></div>
         </div></div></div>
 
@@ -45,7 +50,7 @@
 document.addEventListener('alpine:init', () => Alpine.data('orderForm', () => ({
     catalog: @js($catalog),
     items: @js(old('items', $initialItems)).map((item, index) => ({ ...item, key: `${Date.now()}-${index}` })),
-    currency: @js(old('currency', $order?->currency->value ?? 'USD')),
+    currency: @js(old('currency', $order?->currency->value ?? $repeatPreview['currency'] ?? 'USD')),
     orderDiscount: @js(old('discount', $order?->discount ?? '0')),
     deliveryFee: @js(old('delivery_fee', $order?->delivery_fee ?? '0')),
     addItem() { this.items.push({ key: `${Date.now()}-${Math.random()}`, product_id: '', product_variant_id: '', quantity: 1, discount: '0' }); },

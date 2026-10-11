@@ -83,6 +83,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::get('/orders', [OrderController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');
     Route::get('/orders/create', [OrderController::class, 'create'])->middleware('permission:orders.create')->name('orders.create');
     Route::post('/orders', [OrderController::class, 'store'])->middleware('permission:orders.create')->name('orders.store');
+    Route::get('/orders/{order}/repeat', [OrderController::class, 'repeat'])->middleware(['permission:orders.view', 'permission:orders.create'])->name('orders.repeat');
     Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->middleware('permission:orders.update')->name('orders.edit');
     Route::put('/orders/{order}', [OrderController::class, 'update'])->middleware('permission:orders.update')->name('orders.update');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->middleware('permission:orders.view')->name('orders.show');

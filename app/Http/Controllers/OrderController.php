@@ -9,6 +9,7 @@ use App\Domain\Customer\Models\Customer;
 use App\Domain\Delivery\Enums\ShipmentStatus;
 use App\Domain\Delivery\Models\DeliveryProvider;
 use App\Domain\Order\Actions\CreateOrder;
+use App\Domain\Order\Actions\PrepareRepeatOrder;
 use App\Domain\Order\Actions\UpdateOrder;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Exceptions\OrderCannotBeAmendedException;
@@ -17,6 +18,7 @@ use App\Domain\Order\Services\OrderStatusTransition;
 use App\Domain\Payment\Enums\Currency;
 use App\Domain\Payment\Enums\PaymentMethod;
 use App\Domain\Product\Models\Product;
+use App\Http\Requests\Order\RepeatOrderRequest;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
 use Illuminate\Http\RedirectResponse;
@@ -48,6 +50,24 @@ class OrderController extends Controller
             ...$this->formData(),
             'order' => null,
             'initialItems' => [['product_id' => '', 'product_variant_id' => '', 'quantity' => 1, 'discount' => '0']],
+            'repeatPreview' => null,
+        ]);
+    }
+
+    public function repeat(RepeatOrderRequest $request, Order $order, PrepareRepeatOrder $action): View
+    {
+        $preview = $action->execute($order);
+
+        return view('orders.create', [
+            ...$this->formData(),
+            'order' => null,
+            'initialItems' => $preview['items'],
+            'repeatPreview' => [
+                'order_number' => $order->order_number,
+                'customer_id' => $preview['customer_id'],
+                'currency' => $preview['currency'],
+                'warnings' => $preview['warnings'],
+            ],
         ]);
     }
 
@@ -62,6 +82,7 @@ class OrderController extends Controller
         return view('orders.create', [
             ...$this->formData($order),
             'order' => $order,
+            'repeatPreview' => null,
             'initialItems' => $order->items->map(fn ($item): array => [
                 'product_id' => $item->product_id,
                 'product_variant_id' => $item->product_variant_id ?? '',

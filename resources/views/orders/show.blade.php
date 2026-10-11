@@ -5,6 +5,7 @@
     <div><a href="{{ route('orders.index') }}">← Orders</a><h1 class="h3 mt-2 mb-1">{{ $order->order_number }}</h1><div class="text-secondary">Created {{ $order->created_at->format('d M Y, H:i') }} by {{ $order->creator?->name ?: 'System' }}</div></div>
     <div class="d-flex align-items-center gap-2">
         <a class="btn btn-sm btn-outline-secondary" href="{{ route('orders.receipt', $order) }}" target="_blank">Receipt / បង្កាន់ដៃ</a>
+        @can('orders.create')<a class="btn btn-sm btn-outline-primary" href="{{ route('orders.repeat', $order) }}">Repeat as draft</a>@endcan
         @can('orders.update') @if(in_array($order->status->value, ['draft', 'new'], true))<a class="btn btn-sm btn-outline-primary" href="{{ route('orders.edit', $order) }}">Amend order</a>@endif @endcan
         <span class="badge text-bg-secondary fs-6">{{ $order->status->label() }}</span><span class="badge text-bg-info fs-6">{{ $order->payment_status->label() }}</span>
     </div>

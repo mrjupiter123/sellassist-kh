@@ -15,6 +15,7 @@ Staging must use PHP 8.3+ and MySQL 8+ or MariaDB 10.6+. Use a separate database
 Test a narrow phone and a tablet in portrait and landscape. Have a real seller complete these tasks without coaching:
 
 - sign in, find/create a customer, and enter a multi-item order;
+- repeat a prior order as a reviewed draft; verify current prices, unavailable-item warnings, and that old payments/discounts/notes are not copied;
 - select variants, discounts, delivery fee, source, USD/KHR, and an optional payment;
 - amend, confirm, pack, ship, and complete an order;
 - print or save the bilingual receipt;
