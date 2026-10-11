@@ -7,11 +7,24 @@ namespace App\Domain\Order\Actions;
 use App\Domain\Order\Models\Order;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListOrders
 {
     /** @param array<string, mixed> $filters */
     public function execute(array $filters): LengthAwarePaginator
+    {
+        return $this->query($filters)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->appends($filters);
+    }
+
+    /** @param array<string, mixed> $filters
+     * @return Builder<Order>
+     */
+    public function query(array $filters): Builder
     {
         $search = trim((string) ($filters['search'] ?? ''));
         $query = Order::query()->with('customer:id,uuid,name,phone');
@@ -43,6 +56,6 @@ class ListOrders
             $query->where('created_at', '<', $exclusiveEnd);
         }
 
-        return $query->orderByDesc('created_at')->orderByDesc('id')->paginate(20)->appends($filters);
+        return $query;
     }
 }

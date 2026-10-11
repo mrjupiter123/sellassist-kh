@@ -12,6 +12,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderExportController;
 use App\Http\Controllers\OrderReturnController;
 use App\Http\Controllers\OrderStatusController;
 use App\Http\Controllers\PaymentController;
@@ -81,6 +82,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::post('/inventory/adjustments', [InventoryController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.adjustments.store');
 
     Route::get('/orders', [OrderController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');
+    Route::get('/orders/export', OrderExportController::class)->middleware('permission:orders.view')->name('orders.export');
     Route::get('/orders/create', [OrderController::class, 'create'])->middleware('permission:orders.create')->name('orders.create');
     Route::post('/orders', [OrderController::class, 'store'])->middleware('permission:orders.create')->name('orders.store');
     Route::get('/orders/{order}/repeat', [OrderController::class, 'repeat'])->middleware(['permission:orders.view', 'permission:orders.create'])->name('orders.repeat');

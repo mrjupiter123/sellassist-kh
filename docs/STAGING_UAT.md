@@ -17,6 +17,7 @@ Test a narrow phone and a tablet in portrait and landscape. Have a real seller c
 - sign in, find/create a customer, and enter a multi-item order;
 - repeat a prior order as a reviewed draft; verify current prices, unavailable-item warnings, and that old payments/discounts/notes are not copied;
 - filter the order list by payment, status, source, currency, and a same-day date range on a phone; verify matching orders only and that clearing filters restores the list;
+- export a filtered order CSV; verify it contains only matching orders, omits phone numbers and addresses, and opens safely in the seller's spreadsheet app;
 - select variants, discounts, delivery fee, source, USD/KHR, and an optional payment;
 - amend, confirm, pack, ship, and complete an order;
 - print or save the bilingual receipt;

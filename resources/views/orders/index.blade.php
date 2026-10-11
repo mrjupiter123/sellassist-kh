@@ -3,7 +3,10 @@
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div><h1 class="h3 mb-1">Orders</h1><p class="text-secondary mb-0">Find orders that need packing, shipping, or payment.</p></div>
-    @can('orders.create')<a class="btn btn-primary" href="{{ route('orders.create') }}">New order</a>@endcan
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{{ route('orders.export', $filters) }}">Export filtered CSV</a>
+        @can('orders.create')<a class="btn btn-primary" href="{{ route('orders.create') }}">New order</a>@endcan
+    </div>
 </div>
 
 <div class="d-flex flex-wrap gap-2 mb-3" aria-label="Quick order filters">
@@ -77,7 +80,7 @@
                 @forelse($orders as $order)
                     <tr>
                         <td><a class="fw-semibold text-decoration-none" href="{{ route('orders.show', $order) }}">{{ $order->order_number }}</a><div class="small text-secondary">{{ $order->created_at->format('d M Y H:i') }}</div></td>
-                        <td>{{ $order->customer_name ?: $order->customer->name }}<div class="small text-secondary">{{ $order->customer_phone ?: $order->customer->phone }}</div></td>
+                        <td>{{ $order->customer_name ?: ($order->customer?->name ?? '') }}<div class="small text-secondary">{{ $order->customer_phone ?: ($order->customer?->phone ?? '') }}</div></td>
                         <td>{{ $order->source->label() }}</td>
                         <td><span class="badge text-bg-secondary">{{ $order->status->label() }}</span></td>
                         <td>{{ $order->payment_status->label() }}</td>
