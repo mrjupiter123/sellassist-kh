@@ -61,7 +61,10 @@ php artisan db:seed --class=RolePermissionSeeder --force
 php artisan db:seed --class=AiEvaluationCaseSeeder --force
 php artisan storage:link
 php artisan optimize
+php artisan operations:deployment-check
 ```
+
+`operations:deployment-check` is read-only. It reports PASS/WARN/FAIL for CLI PHP and extensions, application security settings, a database read, pending migrations, seeded roles, queue configuration, runtime directories, public files/assets, mail transport, and optional external health signals. It exits nonzero on failures; add `--strict` to also fail on warnings. It does not print credentials or keys. Fix failed checks before opening the site. Warnings for optional mail and storage features may be acceptable if you intentionally do not use them.
 
 After setting Telegram credentials and confirming `APP_URL` uses public HTTPS, register its webhook once:
 
@@ -117,10 +120,11 @@ php artisan migrate --force
 php artisan db:seed --class=RolePermissionSeeder --force
 php artisan db:seed --class=AiEvaluationCaseSeeder --force
 php artisan optimize
+php artisan operations:deployment-check
 php artisan up
 ```
 
-If frontend source changed, build/upload `public/build` before bringing the application up. Test `/up`, login, order creation, queue processing, and integration health after every update.
+If frontend source changed, build/upload `public/build` before bringing the application up. Do not bring the application up if the readiness check reports a failure. Test `/up`, login, order creation, queue processing, and integration health after every update. The command cannot inspect the cPanel domain document root, the web-server PHP version, actual cron entries, HTTPS certificate, backups, or inbox delivery; verify those separately.
 
 ## Common checks
 

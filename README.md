@@ -140,6 +140,8 @@ These environment-dependent checks require hosting access and human testers. Loc
 
 The complete, saveable first-deployment and update checklist is in [cPanel deployment](docs/CPANEL_DEPLOYMENT.md).
 
+Run `php artisan operations:deployment-check` after migrations, seeders, and assets are deployed. It is read-only and reports pass/warn/fail without displaying secrets. Failures return a nonzero exit code; `--strict` also treats warnings as failures. The command supplements, but does not replace, manual document-root, cron, HTTPS, backup, and seller-workflow checks.
+
 Use PHP 8.3+, point the domain document root to `public/`, configure production `.env` values, and then run:
 
 ```bash
