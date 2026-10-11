@@ -9,39 +9,43 @@ use App\Domain\Customer\Models\Customer;
 use App\Domain\Delivery\Enums\ShipmentStatus;
 use App\Domain\Delivery\Models\DeliveryProvider;
 use App\Domain\Order\Actions\CreateOrder;
+use App\Domain\Order\Actions\ListOrders;
 use App\Domain\Order\Actions\PrepareRepeatOrder;
 use App\Domain\Order\Actions\UpdateOrder;
 use App\Domain\Order\Enums\OrderStatus;
+use App\Domain\Order\Enums\PaymentStatus;
 use App\Domain\Order\Exceptions\OrderCannotBeAmendedException;
 use App\Domain\Order\Models\Order;
 use App\Domain\Order\Services\OrderStatusTransition;
 use App\Domain\Payment\Enums\Currency;
 use App\Domain\Payment\Enums\PaymentMethod;
 use App\Domain\Product\Models\Product;
+use App\Http\Requests\Order\IndexOrdersRequest;
 use App\Http\Requests\Order\RepeatOrderRequest;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    public function index(Request $request): View
+    public function index(IndexOrdersRequest $request, ListOrders $action): View
     {
-        $orders = Order::query()
-            ->with(['customer:id,uuid,name,phone', 'creator:id,name'])
-            ->when($request->filled('status'), fn ($query) => $query->where('status', (string) $request->query('status')))
-            ->when($request->filled('search'), function ($query) use ($request): void {
-                $term = '%'.addcslashes(trim((string) $request->query('search')), '%_\\').'%';
-                $query->where(fn ($query) => $query->where('order_number', 'like', $term)
-                    ->orWhereHas('customer', fn ($query) => $query->where('name', 'like', $term)));
-            })
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+        $filters = $request->validated();
 
-        return view('orders.index', ['orders' => $orders, 'statuses' => OrderStatus::cases()]);
+        return view('orders.index', [
+            'orders' => $action->execute($filters),
+            'filters' => $filters,
+            'statuses' => OrderStatus::cases(),
+            'paymentStatuses' => PaymentStatus::cases(),
+            'sources' => CustomerSource::cases(),
+            'currencies' => Currency::cases(),
+            'quickFilters' => [
+                'unpaid' => ['payment_status' => PaymentStatus::Unpaid->value],
+                'readyToPack' => ['status' => OrderStatus::Confirmed->value],
+                'readyToShip' => ['status' => OrderStatus::Packed->value],
+            ],
+        ]);
     }
 
     public function create(): View
