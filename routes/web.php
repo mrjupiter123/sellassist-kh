@@ -39,6 +39,7 @@ use App\Http\Controllers\SocialOrderExtractionController;
 use App\Http\Controllers\SocialOrderExtractionReviewController;
 use App\Http\Controllers\SocialReplyController;
 use App\Http\Controllers\SocialReplyTemplateController;
+use App\Http\Controllers\StockCountController;
 use App\Http\Controllers\StockMovementExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -83,6 +84,8 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::get('/inventory', [InventoryController::class, 'index'])->middleware('permission:inventory.view')->name('inventory.index');
     Route::get('/inventory/export', StockMovementExportController::class)->middleware('permission:inventory.view')->name('inventory.export');
     Route::get('/inventory/low-stock', LowStockController::class)->middleware('permission:inventory.view')->name('inventory.low-stock');
+    Route::get('/inventory/stock-counts', [StockCountController::class, 'index'])->middleware('permission:inventory.adjust')->name('inventory.stock-counts.index');
+    Route::post('/inventory/stock-counts', [StockCountController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.stock-counts.store');
     Route::post('/inventory/adjustments', [InventoryController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.adjustments.store');
 
     Route::get('/orders', [OrderController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');

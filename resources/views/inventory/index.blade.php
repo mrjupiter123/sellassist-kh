@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div><h1 class="h3 mb-1">Inventory</h1><p class="text-secondary mb-0">Every stock change is recorded in the audit trail.</p></div>
-    <a class="btn btn-outline-secondary" href="{{ route('inventory.low-stock') }}">View low-stock items</a>
+    <div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="{{ route('inventory.low-stock') }}">View low-stock items</a>@can('inventory.adjust')<a class="btn btn-outline-secondary" href="{{ route('inventory.stock-counts.index') }}">Physical counts</a>@endcan</div>
 </div>
 
 <div class="row g-4">

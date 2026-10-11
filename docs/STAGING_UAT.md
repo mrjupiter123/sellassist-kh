@@ -29,6 +29,7 @@ Test a narrow phone and a tablet in portrait and landscape. Have a real seller c
 - review both pages of a long low-stock list, confirm inactive products/variants are excluded, and verify the adjustment creates a stock movement;
 - inspect a product and variant's stock history and filter movements by product, variant, SKU, type, and date; confirm the filters do not change any stock counts;
 - export filtered stock movements, verify the CSV opens with Khmer text intact, omits adjustment notes, and contains only matching rows;
+- record a physical count above, below, and equal to current stock; verify the count audit, one linked movement per nonzero difference, stale-form rejection, and safe duplicate-submit behavior;
 - as an administrator, create and deactivate a staff account.
 - create a shipment, print its Khmer/English label, progress pickup through delivery, and reconcile partial/full COD;
 - fail and retry a delivery, then verify a returned shipment cancels the order and restores stock once;

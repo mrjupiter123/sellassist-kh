@@ -19,6 +19,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Low-stock read models include only active standalone products and active variants of active products. They never adjust stock themselves.
 - Stock-movement history is read-only, permission-gated, and filtered through validated product/variant UUIDs, movement enums, and date ranges. Never rewrite audit movements to correct stock.
 - CSV exports reuse the validated list filters, cap the row count, escape spreadsheet formulas, and omit free-text inventory notes and internal references.
+- Physical stocktakes go through `RecordStockCount`: lock the stockable item, reject stale observed quantities, record the count even when unchanged, and adjust nonzero differences only through `AdjustStock`. Reused count UUIDs must not apply a second adjustment.
 - Stock cannot become negative through normal workflows.
 - Never trust prices, totals, permissions, user IDs, order statuses, or stock quantities from the frontend.
 - Order totals must be calculated server-side through `OrderCalculator`.
