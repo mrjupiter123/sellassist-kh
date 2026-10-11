@@ -78,7 +78,7 @@ The order worklist offers quick links for unpaid, ready-to-pack, and ready-to-sh
 
 Customer details include paginated order history for users with both `customers.view` and `orders.view`. Users who can view customers but not orders see contact details only. Historical orders remain scoped to that customer and linked by public UUID.
 
-Inventory includes a paginated low-stock list for active standalone products and active variants of active products. The dashboard preview uses the same rules and is visible only with `inventory.view`; replenishment still goes through `AdjustStock` and creates a movement audit record. The filterable stock-movement history can be narrowed by product or variant UUID, item name or SKU, movement type, and date without changing stock.
+Inventory includes a paginated low-stock list for active standalone products and active variants of active products. The dashboard preview uses the same rules and is visible only with `inventory.view`; replenishment still goes through `AdjustStock` and creates a movement audit record. The filterable stock-movement history can be narrowed by product or variant UUID, item name or SKU, movement type, and date without changing stock. Authorized sellers can export up to 5,000 filtered movements as a UTF-8 CSV. Notes and internal references are omitted from downloads; spreadsheet formula prefixes are escaped.
 
 Order activities are written inside the same transactions as creation, amendments, status changes, payments, returns, and refunds. Customer contact and address data is snapshotted on each order so historical receipts remain stable. Variant maintenance cannot alter stock; all stock changes continue through the inventory domain.
 

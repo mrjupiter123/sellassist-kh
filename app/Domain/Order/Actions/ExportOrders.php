@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domain\Order\Actions;
 
+use App\Support\CsvStreamWriter;
+
 class ExportOrders
 {
     private const MAX_ROWS = 5000;
 
-    public function __construct(private readonly ListOrders $listOrders) {}
+    public function __construct(
+        private readonly ListOrders $listOrders,
+        private readonly CsvStreamWriter $writer,
+    ) {}
 
     /** @param array<string, mixed> $filters */
     public function isWithinLimit(array $filters): bool
@@ -19,48 +24,27 @@ class ExportOrders
     /** @param array<string, mixed> $filters */
     public function write(array $filters): void
     {
-        $output = fopen('php://output', 'wb');
-
-        if ($output === false) {
-            throw new \RuntimeException('Could not open the order export stream.');
-        }
-
-        try {
-            if (fwrite($output, "\xEF\xBB\xBF") === false) {
-                throw new \RuntimeException('Could not write the order export.');
-            }
-
-            $this->writeRow($output, ['Order number', 'Created at', 'Customer', 'Source', 'Status', 'Payment status', 'Currency', 'Total']);
-
-            foreach ($this->listOrders->query($filters)->orderBy('id')->lazy(500) as $order) {
-                $this->writeRow($output, [
-                    $this->safeCell($order->order_number),
-                    $order->created_at->format('Y-m-d H:i:s'),
-                    $this->safeCell($order->customer_name ?: ($order->customer?->name ?? '')),
-                    $order->source->label(),
-                    $order->status->label(),
-                    $order->payment_status->label(),
-                    $order->currency->value,
-                    $order->total,
-                ]);
-            }
-        } finally {
-            fclose($output);
-        }
+        $this->writer->write($this->rows($filters));
     }
 
-    private function safeCell(string $value): string
-    {
-        return preg_match('/^[\x00-\x20]*[=+\-@]/', $value) === 1 ? "'".$value : $value;
-    }
-
-    /** @param resource $output
-     * @param  array<int, string>  $row
+    /** @param array<string, mixed> $filters
+     * @return \Generator<array<int, int|float|string|null>>
      */
-    private function writeRow($output, array $row): void
+    private function rows(array $filters): \Generator
     {
-        if (fputcsv($output, $row, ',', '"', '') === false) {
-            throw new \RuntimeException('Could not write the order export.');
+        yield ['Order number', 'Created at', 'Customer', 'Source', 'Status', 'Payment status', 'Currency', 'Total'];
+
+        foreach ($this->listOrders->query($filters)->orderBy('id')->lazy(500) as $order) {
+            yield [
+                $order->order_number,
+                $order->created_at->format('Y-m-d H:i:s'),
+                $order->customer_name ?: ($order->customer?->name ?? ''),
+                $order->source->label(),
+                $order->status->label(),
+                $order->payment_status->label(),
+                $order->currency->value,
+                $order->total,
+            ];
         }
     }
 }

@@ -26,7 +26,7 @@
 
     <div class="{{ auth()->user()->can('inventory.adjust') ? 'col-lg-8' : 'col-12' }}">
         <div class="card">
-            <div class="card-header bg-white"><strong>Stock movement history</strong></div>
+            <div class="card-header bg-white d-flex justify-content-between align-items-center gap-2"><strong>Stock movement history</strong><a class="btn btn-sm btn-outline-secondary" href="{{ route('inventory.export', $filters) }}">Export filtered CSV</a></div>
             <div class="card-body border-bottom">
                 @if($selectedProduct)
                     <p class="small mb-2">Showing movements for <strong>{{ $selectedProduct->name }}</strong>.</p>

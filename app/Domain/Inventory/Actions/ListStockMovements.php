@@ -7,11 +7,24 @@ namespace App\Domain\Inventory\Actions;
 use App\Domain\Inventory\Models\StockMovement;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListStockMovements
 {
     /** @param array<string, mixed> $filters */
     public function execute(array $filters): LengthAwarePaginator
+    {
+        return $this->query($filters)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(25)
+            ->appends($filters);
+    }
+
+    /** @param array<string, mixed> $filters
+     * @return Builder<StockMovement>
+     */
+    public function query(array $filters): Builder
     {
         $query = StockMovement::query()
             ->with(['product:id,uuid,name,sku', 'variant:id,uuid,color,size,sku', 'creator:id,name']);
@@ -47,6 +60,6 @@ class ListStockMovements
             $query->where('created_at', '<', CarbonImmutable::parse($filters['created_to'])->addDay()->format('Y-m-d 00:00:00'));
         }
 
-        return $query->orderByDesc('created_at')->orderByDesc('id')->paginate(25)->appends($filters);
+        return $query;
     }
 }
