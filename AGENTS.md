@@ -67,6 +67,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Administrator mail tests are rate-limited and queued on `integrations`; they must not enable alert email or simulate a degradation event.
 - AI alert mail attempts store metadata and status only. Do not persist message bodies, SMTP credentials, or raw transport exceptions; mailer acceptance is not proof of inbox delivery.
 - Database queue-stall monitoring is advisory. Check only ready, sufficiently old jobs; deduplicate in-app alerts until recovery, expose overdue scheduler checks, and never retry or delete jobs automatically.
+- External operations health checks are opt-in and require a private bearer header. Keep tokens environment-only, never accept them in URLs, and expose only a status code. Scheduler and integrations-worker heartbeats must remain independent so an external monitor can detect either cron stopping.
 
 ## Development practices
 

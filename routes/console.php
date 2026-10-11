@@ -15,3 +15,8 @@ Schedule::command('social:ai:monitor-releases')
 Schedule::command('operations:monitor-queues')
     ->everyFiveMinutes()
     ->withoutOverlapping(4);
+
+Schedule::command('operations:heartbeat')
+    ->everyFiveMinutes()
+    ->withoutOverlapping(4)
+    ->when(fn (): bool => is_string(config('operations.health_token')) && strlen(config('operations.health_token')) >= 32);
