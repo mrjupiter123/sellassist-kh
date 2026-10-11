@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryProviderController;
 use App\Http\Controllers\FailedJobController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\LowStockController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\OrderController;
@@ -79,6 +80,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::put('/products/{product}/variants/{variant}', [ProductVariantController::class, 'update'])->middleware('permission:products.update')->name('products.variants.update');
 
     Route::get('/inventory', [InventoryController::class, 'index'])->middleware('permission:inventory.view')->name('inventory.index');
+    Route::get('/inventory/low-stock', LowStockController::class)->middleware('permission:inventory.view')->name('inventory.low-stock');
     Route::post('/inventory/adjustments', [InventoryController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.adjustments.store');
 
     Route::get('/orders', [OrderController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');

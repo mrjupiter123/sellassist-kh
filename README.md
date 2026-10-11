@@ -82,6 +82,10 @@ Customer details include paginated order history for users with both `customers.
 
 Customer details include paginated order history for users with both `customers.view` and `orders.view`. Users who can view customers but not orders see contact details only. Historical orders remain scoped to that customer and linked by public UUID.
 
+Inventory includes a paginated low-stock list for active standalone products and active variants of active products. The dashboard preview uses the same rules and is visible only with `inventory.view`; replenishment still goes through `AdjustStock` and creates a movement audit record.
+
+Inventory includes a paginated low-stock list for active standalone products and active variants of active products. The dashboard preview uses the same rules and is visible only with `inventory.view`; replenishment still goes through `AdjustStock` and creates a movement audit record.
+
 Order activities are written inside the same transactions as creation, amendments, status changes, payments, returns, and refunds. Customer contact and address data is snapshotted on each order so historical receipts remain stable. Variant maintenance cannot alter stock; all stock changes continue through the inventory domain.
 
 Delivery providers and shipments live under the `Delivery` domain. Shipment transitions are centralized and audited. Courier pickup moves a packed order to shipped, delivery moves it to completed, and a courier return cancels the shipped order through the existing order action so stock restoration stays idempotent. COD is calculated from the server-side outstanding balance, kept synchronized before delivery, and remittances create linked COD payment records. Printable labels use order snapshots.

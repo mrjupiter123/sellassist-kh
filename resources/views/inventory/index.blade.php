@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Inventory · SellAssist KH')
 @section('content')
-<div class="mb-4"><h1 class="h3 mb-1">Inventory</h1><p class="text-secondary mb-0">Every change is recorded in the stock audit trail.</p></div>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4"><div><h1 class="h3 mb-1">Inventory</h1><p class="text-secondary mb-0">Every change is recorded in the stock audit trail.</p></div><a class="btn btn-outline-secondary" href="{{ route('inventory.low-stock') }}">View low-stock items</a></div>
 <div class="row g-4">
     @can('inventory.adjust')
     <div class="col-lg-4"><div class="card"><div class="card-body"><h2 class="h5">Adjust stock</h2>

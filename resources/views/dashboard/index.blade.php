@@ -36,17 +36,19 @@
             </table></div>
         </div>
     </div>
+    @can('inventory.view')
     <div class="col-lg-4">
-        <div class="card"><div class="card-header bg-white"><strong>Low stock</strong></div><div class="list-group list-group-flush">
+        <div class="card"><div class="card-header bg-white d-flex justify-content-between align-items-center"><strong>Low stock</strong><a href="{{ route('inventory.low-stock') }}">View all</a></div><div class="list-group list-group-flush">
             @forelse($lowStockProducts as $product)
-                <a class="list-group-item list-group-item-action d-flex justify-content-between" href="{{ route('products.show', $product) }}"><span>{{ $product->name }}</span><span class="badge text-bg-warning">{{ $product->stock_quantity }}</span></a>
+                @can('products.view')<a class="list-group-item list-group-item-action d-flex justify-content-between" href="{{ route('products.show', $product) }}"><span>{{ $product->name }}</span><span class="badge text-bg-warning">{{ $product->stock_quantity }}</span></a>@else<div class="list-group-item d-flex justify-content-between"><span>{{ $product->name }}</span><span class="badge text-bg-warning">{{ $product->stock_quantity }}</span></div>@endcan
             @empty @endforelse
             @foreach($lowStockVariants as $variant)
-                <a class="list-group-item list-group-item-action d-flex justify-content-between" href="{{ route('products.show', $variant->product) }}"><span>{{ $variant->product->name }} <small class="text-secondary">{{ $variant->display_name }}</small></span><span class="badge text-bg-warning">{{ $variant->stock_quantity }}</span></a>
+                @can('products.view')<a class="list-group-item list-group-item-action d-flex justify-content-between" href="{{ route('products.show', $variant->product) }}"><span>{{ $variant->product->name }} <small class="text-secondary">{{ $variant->display_name }}</small></span><span class="badge text-bg-warning">{{ $variant->stock_quantity }}</span></a>@else<div class="list-group-item d-flex justify-content-between"><span>{{ $variant->product->name }} <small class="text-secondary">{{ $variant->display_name }}</small></span><span class="badge text-bg-warning">{{ $variant->stock_quantity }}</span></div>@endcan
             @endforeach
             @if($lowStockProducts->isEmpty() && $lowStockVariants->isEmpty())<div class="list-group-item text-secondary">No low-stock items.</div>@endif
         </div></div>
     </div>
+    @endcan
 </div>
 @endsection
 

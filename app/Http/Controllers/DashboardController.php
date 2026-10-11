@@ -7,20 +7,20 @@ namespace App\Http\Controllers;
 use App\Domain\Delivery\Enums\CodStatus;
 use App\Domain\Delivery\Enums\ShipmentStatus;
 use App\Domain\Delivery\Models\Shipment;
+use App\Domain\Inventory\Services\LowStockItems;
 use App\Domain\Order\Enums\OrderStatus;
 use App\Domain\Order\Enums\PaymentStatus;
 use App\Domain\Order\Models\Order;
 use App\Domain\Payment\Enums\Currency;
-use App\Domain\Product\Models\Product;
-use App\Domain\Product\Models\ProductVariant;
 use App\Domain\Social\Enums\ConversationStatus;
 use App\Domain\Social\Models\SocialConversation;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(LowStockItems $lowStock): View
     {
         $today = today();
         $orders = Order::query();
@@ -76,21 +76,20 @@ class DashboardController extends Controller
             return [$currency->value => $amount];
         });
 
-        $lowStockProducts = Product::query()
-            ->doesntHave('variants')
-            ->where('active', true)
-            ->whereColumn('stock_quantity', '<=', 'low_stock_threshold')
-            ->orderBy('stock_quantity')
-            ->limit(8)
-            ->get();
+        $lowStockProducts = collect();
+        $lowStockVariants = collect();
 
-        $lowStockVariants = ProductVariant::query()
-            ->with('product:id,uuid,name')
-            ->where('active', true)
-            ->whereColumn('stock_quantity', '<=', 'low_stock_threshold')
-            ->orderBy('stock_quantity')
-            ->limit(8)
-            ->get();
+        if (Gate::allows('inventory.view')) {
+            $lowStockProducts = $lowStock->products()
+                ->orderBy('stock_quantity')
+                ->limit(8)
+                ->get();
+
+            $lowStockVariants = $lowStock->variants()
+                ->orderBy('stock_quantity')
+                ->limit(8)
+                ->get();
+        }
 
         $recentOrders = Order::query()
             ->with(['customer:id,uuid,name', 'creator:id,name'])
