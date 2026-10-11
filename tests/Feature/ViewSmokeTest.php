@@ -39,6 +39,6 @@ class ViewSmokeTest extends TestCase
         $this->actingAs($user)->get(route('inventory.index'))
             ->assertOk()
             ->assertSee('Adjust stock')
-            ->assertSee('Recent movements');
+            ->assertSee('Stock movement history');
     }
 }

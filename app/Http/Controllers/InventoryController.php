@@ -5,23 +5,24 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Inventory\Actions\AdjustStock;
+use App\Domain\Inventory\Actions\ListStockMovements;
 use App\Domain\Inventory\Enums\StockMovementType;
-use App\Domain\Inventory\Models\StockMovement;
 use App\Domain\Product\Models\Product;
 use App\Domain\Product\Models\ProductVariant;
 use App\Http\Requests\Inventory\AdjustStockRequest;
+use App\Http\Requests\Inventory\IndexStockMovementsRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class InventoryController extends Controller
 {
-    public function index(): View
+    public function index(IndexStockMovementsRequest $request, ListStockMovements $action): View
     {
-        $movements = StockMovement::query()
-            ->with(['product:id,uuid,name', 'variant:id,uuid,color,size', 'creator:id,name'])
-            ->latest()
-            ->paginate(25);
-        $products = Product::query()->with(['variants' => fn ($query) => $query->where('active', true)])->where('active', true)->orderBy('name')->get();
+        $filters = $request->validated();
+        $products = Gate::allows('inventory.adjust')
+            ? Product::query()->with(['variants' => fn ($query) => $query->where('active', true)])->where('active', true)->orderBy('name')->get()
+            : collect();
         $catalog = $products->map(fn (Product $product): array => [
             'id' => $product->id,
             'name' => $product->name,
@@ -32,8 +33,21 @@ class InventoryController extends Controller
                 'stock' => $variant->stock_quantity,
             ])->values(),
         ])->values();
+        $selectedProduct = isset($filters['product'])
+            ? Product::query()->where('uuid', $filters['product'])->first(['id', 'uuid', 'name'])
+            : null;
+        $selectedVariant = isset($filters['variant'])
+            ? ProductVariant::query()->where('uuid', $filters['variant'])->first(['id', 'uuid', 'color', 'size'])
+            : null;
 
-        return view('inventory.index', compact('movements', 'catalog'));
+        return view('inventory.index', [
+            'movements' => $action->execute($filters),
+            'catalog' => $catalog,
+            'filters' => $filters,
+            'movementTypes' => StockMovementType::cases(),
+            'selectedProduct' => $selectedProduct,
+            'selectedVariant' => $selectedVariant,
+        ]);
     }
 
     public function store(AdjustStockRequest $request, AdjustStock $action): RedirectResponse
