@@ -18,7 +18,7 @@ class RolePermissionSeeder extends Seeder
         'orders.view', 'orders.create', 'orders.update', 'orders.cancel',
         'payments.view', 'payments.create',
         'payments.refund',
-        'inventory.view', 'inventory.adjust',
+        'inventory.view', 'inventory.adjust', 'inventory.review',
         'returns.view', 'returns.create',
         'users.view', 'users.manage',
         'delivery.view', 'delivery.create', 'delivery.update',

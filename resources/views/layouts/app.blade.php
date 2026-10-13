@@ -23,6 +23,7 @@
                     @can('customers.view')<li class="nav-item"><a class="nav-link" href="{{ route('customers.index') }}">Customers</a></li>@endcan
                     @can('products.view')<li class="nav-item"><a class="nav-link" href="{{ route('products.index') }}">Products</a></li>@endcan
                     @can('inventory.view')<li class="nav-item"><a class="nav-link" href="{{ route('inventory.index') }}">Inventory</a></li>@endcan
+                    @can('inventory.review')<li class="nav-item"><a class="nav-link" href="{{ route('inventory.discrepancies.index') }}">Discrepancies</a></li>@endcan
                     @can('delivery.view')<li class="nav-item"><a class="nav-link" href="{{ route('delivery.shipments.index') }}">Delivery</a></li>@endcan
                     @can('social.view')<li class="nav-item"><a class="nav-link" href="{{ route('social.inbox.index') }}">Social Inbox</a></li>@endcan
                     @can('social.ai.manage')<li class="nav-item"><a class="nav-link" href="{{ route('social.ai-profiles.index') }}">AI Profiles</a></li>@endcan

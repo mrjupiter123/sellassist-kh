@@ -53,7 +53,7 @@ class StockCountController extends Controller
     public function show(StockCount $stockCount): View
     {
         return view('inventory.stock-count-show', [
-            'count' => $stockCount->load(['product:id,uuid,name,sku', 'variant:id,uuid,color,size,sku', 'creator:id,name', 'movement']),
+            'count' => $stockCount->load(['product:id,uuid,name,sku', 'variant:id,uuid,color,size,sku', 'creator:id,name', 'movement', 'discrepancyReview.reviewer:id,name']),
         ]);
     }
 

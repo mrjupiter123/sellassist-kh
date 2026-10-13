@@ -61,4 +61,9 @@ class StockCount extends Model
         return $this->hasOne(StockMovement::class, 'reference_id')
             ->where('reference_type', self::MOVEMENT_REFERENCE_TYPE);
     }
+
+    public function discrepancyReview(): HasOne
+    {
+        return $this->hasOne(StockCountDiscrepancyReview::class);
+    }
 }
