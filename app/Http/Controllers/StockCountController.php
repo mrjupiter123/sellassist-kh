@@ -13,6 +13,7 @@ use App\Domain\Product\Models\Product;
 use App\Domain\Product\Models\ProductVariant;
 use App\Http\Requests\Inventory\IndexStockCountsRequest;
 use App\Http\Requests\Inventory\StoreStockCountRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -54,8 +55,11 @@ class StockCountController extends Controller
     public function show(StockCount $stockCount): View
     {
         return view('inventory.stock-count-show', [
-            'count' => $stockCount->load(['product:id,uuid,name,sku', 'variant:id,uuid,color,size,sku', 'creator:id,name', 'movement', 'discrepancyReview.reviewer:id,name']),
+            'count' => $stockCount->load(['product:id,uuid,name,sku', 'variant:id,uuid,color,size,sku', 'creator:id,name', 'movement', 'discrepancyReview.reviewer:id,name', 'discrepancyReview.followup']),
             'discrepancyCauses' => StockDiscrepancyCause::cases(),
+            'assignees' => auth()->user()->can('inventory.review') && $stockCount->discrepancyReview && ! $stockCount->discrepancyReview->followup
+                ? User::permission('inventory.adjust')->where('active', true)->orderBy('name')->get(['id', 'uuid', 'name'])
+                : collect(),
         ]);
     }
 

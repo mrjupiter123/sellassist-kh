@@ -151,6 +151,10 @@ The Alerts page shows each administrator's ten most recent AI alert/test email a
 
 Messenger and Telegram webhooks, social replies, and AI order suggestions use the same `integrations` queue. Administrators can monitor pending/failed jobs, recent delivery failures, delivery/social webhook health, and aggregate AI extraction quality under **Operations**. The AI dashboard supports 7/30/90-day views for success, confidence, seller feedback, model performance, and token usage without displaying customer messages or encrypted correction notes.
 
+## Corrective stock follow-ups
+
+After a supervisor reviews a nonzero physical-count discrepancy, they can assign one corrective follow-up to an active inventory operator from the count detail page. The **Follow-ups** worklist shows all assignments to supervisors and only assigned tasks to operators; it can be filtered by open or completed status. The assignee or a supervisor may complete a task with an outcome note. Assignment and completion are idempotent on identical retries; completed outcomes and reviews cannot be rewritten. Outcome notes are encrypted at rest. This workflow never adjusts stock—use the separate inventory adjustment action for any correction. Deploy with `php artisan migrate --force`; existing count and review rows are unchanged.
+
 ## Stabilization runbooks
 
 - [Staging deployment, mobile seller UAT, and MySQL concurrency verification](docs/STAGING_UAT.md)

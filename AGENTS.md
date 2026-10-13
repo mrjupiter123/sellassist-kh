@@ -18,6 +18,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Every stock change must create a stock-movement audit record.
 - Low-stock read models include only active standalone products and active variants of active products. They never adjust stock themselves.
 - Stock-movement history is read-only, permission-gated, and filtered through validated product/variant UUIDs, movement enums, and date ranges. Never rewrite audit movements to correct stock.
+- Corrective discrepancy follow-ups belong to an immutable supervisor review. Only active inventory operators may be assigned; only the assignee or an inventory supervisor may complete them. Completion records an encrypted outcome and must never change stock or rewrite the review.
 - CSV exports reuse the validated list filters, cap the row count, escape spreadsheet formulas, and omit free-text inventory notes and internal references.
 - Physical stocktakes go through `RecordStockCount`: lock the stockable item, reject stale observed quantities, record the count even when unchanged, and adjust nonzero differences only through `AdjustStock`. Reused count UUIDs must not apply a second adjustment.
 - Planned cycle-count assignments are scheduling records only. Complete them through `CompleteStockCountTask`, which calls `RecordStockCount` inside the same transaction; only the assignee or an administrator may complete a task. Do not mark a task complete without its immutable stock-count record.

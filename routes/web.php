@@ -43,6 +43,7 @@ use App\Http\Controllers\StockCountCampaignController;
 use App\Http\Controllers\StockCountController;
 use App\Http\Controllers\StockCountTaskController;
 use App\Http\Controllers\StockDiscrepancyController;
+use App\Http\Controllers\StockDiscrepancyFollowupController;
 use App\Http\Controllers\StockDiscrepancyTrendController;
 use App\Http\Controllers\StockMovementExportController;
 use App\Http\Controllers\UserController;
@@ -94,6 +95,10 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::get('/inventory/discrepancies', [StockDiscrepancyController::class, 'index'])->middleware('permission:inventory.review')->name('inventory.discrepancies.index');
     Route::get('/inventory/discrepancies/trends', StockDiscrepancyTrendController::class)->middleware('permission:inventory.review')->name('inventory.discrepancies.trends');
     Route::post('/inventory/discrepancies/{stockCount}/review', [StockDiscrepancyController::class, 'storeReview'])->middleware('permission:inventory.review')->name('inventory.discrepancies.review');
+    Route::get('/inventory/followups', [StockDiscrepancyFollowupController::class, 'index'])->middleware('permission:inventory.adjust|inventory.review')->name('inventory.followups.index');
+    Route::post('/inventory/discrepancy-reviews/{review}/followup', [StockDiscrepancyFollowupController::class, 'store'])->middleware('permission:inventory.review')->name('inventory.followups.store');
+    Route::get('/inventory/followups/{followup}', [StockDiscrepancyFollowupController::class, 'show'])->middleware('permission:inventory.adjust|inventory.review')->name('inventory.followups.show');
+    Route::post('/inventory/followups/{followup}/complete', [StockDiscrepancyFollowupController::class, 'complete'])->middleware('permission:inventory.adjust|inventory.review')->name('inventory.followups.complete');
     Route::get('/inventory/count-tasks', [StockCountTaskController::class, 'index'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-tasks.index');
     Route::post('/inventory/count-tasks', [StockCountTaskController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-tasks.store');
     Route::get('/inventory/count-tasks/{stockCountTask}', [StockCountTaskController::class, 'show'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-tasks.show');

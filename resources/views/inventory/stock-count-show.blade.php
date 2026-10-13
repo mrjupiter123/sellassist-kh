@@ -43,6 +43,20 @@
                 <p class="mb-2">Reviewed by {{ $count->discrepancyReview->reviewer->name }} on {{ $count->discrepancyReview->reviewed_at->format('d M Y H:i') }}.</p>
                 <p class="mb-2">Cause: {{ $count->discrepancyReview->root_cause?->label() ?? 'Legacy review (uncategorized)' }}</p>
                 <p class="mb-0">{{ $count->discrepancyReview->review_notes }}</p>
+                <hr>
+                @if($count->discrepancyReview->followup)
+                    <a href="{{ route('inventory.followups.show', $count->discrepancyReview->followup) }}">View corrective follow-up: {{ $count->discrepancyReview->followup->title }}</a>
+                @else
+                    <h3 class="h6">Assign corrective follow-up</h3>
+                    <p class="small text-secondary">This creates an operational task; it does not change inventory or the review.</p>
+                    <form method="POST" action="{{ route('inventory.followups.store', $count->discrepancyReview) }}">
+                        @csrf
+                        <div class="mb-3"><label class="form-label" for="followup-title">Action *</label><input id="followup-title" class="form-control" name="title" value="{{ old('title') }}" maxlength="150" required></div>
+                        <div class="mb-3"><label class="form-label" for="followup-assignee">Assign to *</label><select id="followup-assignee" class="form-select" name="assignee" required><option value="">Choose an active operator</option>@foreach($assignees as $assignee)<option value="{{ $assignee->uuid }}" @selected(old('assignee') === $assignee->uuid)>{{ $assignee->name }}</option>@endforeach</select></div>
+                        <div class="mb-3"><label class="form-label" for="followup-due">Due date</label><input id="followup-due" class="form-control" type="date" name="due_on" value="{{ old('due_on') }}"></div>
+                        <button class="btn btn-primary" type="submit">Assign follow-up</button>
+                    </form>
+                @endif
             @else
                 <p class="small text-secondary">Acknowledge the discrepancy after checking the count and movement. This does not change inventory, and the review cannot be edited.</p>
                 <form method="POST" action="{{ route('inventory.discrepancies.review', $count) }}">

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\HasPublicUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class StockCountDiscrepancyReview extends Model
 {
@@ -35,5 +36,10 @@ class StockCountDiscrepancyReview extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function followup(): HasOne
+    {
+        return $this->hasOne(StockDiscrepancyFollowup::class, 'review_id');
     }
 }
