@@ -152,7 +152,74 @@ class StockCountWorkflowTest extends TestCase
             ->assertOk()
             ->assertSeeText('Record a count')
             ->assertSeeText('Counted Shirt')
-            ->assertSeeText('Recent counts');
+            ->assertSeeText('Count history');
+    }
+
+    public function test_stocktake_history_filters_by_item_difference_and_date(): void
+    {
+        $seller = $this->userWithPermissions(['inventory.adjust']);
+        $shirt = Product::factory()->create(['name' => 'History Shirt', 'sku' => 'HIST-SHIRT']);
+        $bag = Product::factory()->create(['name' => 'History Bag', 'sku' => 'HIST-BAG']);
+        $record = app(RecordStockCount::class);
+
+        $changed = $record->execute($shirt, null, 0, 3, $seller, (string) Str::uuid());
+        $unchanged = $record->execute($shirt, null, 3, 3, $seller, (string) Str::uuid());
+        $other = $record->execute($bag, null, 0, 2, $seller, (string) Str::uuid());
+        $changed->forceFill(['created_at' => '2026-10-01 12:00:00'])->save();
+        $unchanged->forceFill(['created_at' => '2026-10-03 12:00:00'])->save();
+        $other->forceFill(['created_at' => '2026-10-05 12:00:00'])->save();
+
+        $this->actingAs($seller)->get(route('inventory.stock-counts.index', [
+            'product' => $shirt->uuid,
+            'search' => 'HIST-SHIRT',
+            'difference' => 'changed',
+            'created_from' => '2026-10-01',
+            'created_to' => '2026-10-01',
+        ]))->assertOk()->assertViewHas('counts', function ($counts) use ($changed): bool {
+            return $counts->total() === 1 && $counts->items()[0]->id === $changed->id;
+        });
+
+        $this->actingAs($seller)->get(route('inventory.stock-counts.index', [
+            'difference' => 'unchanged',
+        ]))->assertOk()->assertViewHas('counts', function ($counts) use ($unchanged): bool {
+            return $counts->total() === 1 && $counts->items()[0]->id === $unchanged->id;
+        });
+    }
+
+    public function test_stocktake_detail_shows_linked_movement_and_no_change_explanation(): void
+    {
+        $seller = $this->userWithPermissions(['inventory.adjust', 'inventory.view']);
+        $product = Product::factory()->create(['name' => 'Audit Shirt']);
+        $record = app(RecordStockCount::class);
+        $changed = $record->execute($product, null, 0, 4, $seller, (string) Str::uuid(), 'Shelf check');
+        $unchanged = $record->execute($product, null, 4, 4, $seller, (string) Str::uuid());
+
+        $this->actingAs($seller)->get(route('inventory.stock-counts.show', $changed))
+            ->assertOk()
+            ->assertSeeText('Audit Shirt')
+            ->assertSeeText('Shelf check')
+            ->assertSeeText('An adjustment movement was recorded with this count.')
+            ->assertSeeText('0 → 4');
+
+        $this->actingAs($seller)->get(route('inventory.stock-counts.show', $unchanged))
+            ->assertOk()
+            ->assertSeeText('No adjustment was needed');
+    }
+
+    public function test_stocktake_history_rejects_invalid_filters_and_keeps_details_private(): void
+    {
+        $seller = $this->userWithPermissions(['inventory.adjust']);
+        $viewer = $this->userWithPermissions(['inventory.view']);
+        $product = Product::factory()->create();
+        $count = app(RecordStockCount::class)->execute($product, null, 0, 1, $seller, (string) Str::uuid());
+
+        $this->actingAs($seller)->get(route('inventory.stock-counts.index', [
+            'difference' => 'invalid',
+            'created_from' => '2026-10-10',
+            'created_to' => '2026-10-01',
+        ]))->assertRedirect(route('inventory.stock-counts.index'))->assertSessionHasErrors(['difference', 'created_to']);
+
+        $this->actingAs($viewer)->get(route('inventory.stock-counts.show', $count))->assertForbidden();
     }
 
     public function test_stocktake_pages_and_submission_require_adjust_permission(): void

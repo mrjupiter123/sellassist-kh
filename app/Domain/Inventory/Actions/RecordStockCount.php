@@ -86,7 +86,7 @@ class RecordStockCount
                     $difference,
                     StockMovementType::Adjustment,
                     $actor,
-                    referenceType: 'stock_count',
+                    referenceType: StockCount::MOVEMENT_REFERENCE_TYPE,
                     referenceId: $count->id,
                     notes: 'Physical stock count',
                 );

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Inventory\Actions\ListStockCounts;
 use App\Domain\Inventory\Actions\RecordStockCount;
+use App\Domain\Inventory\Enums\StockCountDifferenceFilter;
 use App\Domain\Inventory\Models\StockCount;
 use App\Domain\Product\Models\Product;
 use App\Domain\Product\Models\ProductVariant;
+use App\Http\Requests\Inventory\IndexStockCountsRequest;
 use App\Http\Requests\Inventory\StoreStockCountRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
@@ -15,8 +18,9 @@ use Illuminate\View\View;
 
 class StockCountController extends Controller
 {
-    public function index(): View
+    public function index(IndexStockCountsRequest $request, ListStockCounts $listStockCounts): View
     {
+        $filters = $request->validated();
         $products = Product::query()
             ->where('active', true)
             ->where(fn ($query) => $query->doesntHave('variants')->orWhereHas('variants', fn ($variants) => $variants->where('active', true)))
@@ -35,16 +39,21 @@ class StockCountController extends Controller
             ])->values(),
         ])->values();
 
-        $counts = StockCount::query()
-            ->with(['product:id,uuid,name', 'variant:id,uuid,color,size', 'creator:id,name'])
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->paginate(20);
-
         return view('inventory.stock-counts', [
             'catalog' => $catalog,
-            'counts' => $counts,
+            'counts' => $listStockCounts->execute($filters),
+            'filters' => $filters,
+            'differenceFilters' => StockCountDifferenceFilter::cases(),
+            'selectedProduct' => isset($filters['product']) ? Product::query()->where('uuid', $filters['product'])->first() : null,
+            'selectedVariant' => isset($filters['variant']) ? ProductVariant::query()->where('uuid', $filters['variant'])->first() : null,
             'submissionToken' => (string) Str::uuid(),
+        ]);
+    }
+
+    public function show(StockCount $stockCount): View
+    {
+        return view('inventory.stock-count-show', [
+            'count' => $stockCount->load(['product:id,uuid,name,sku', 'variant:id,uuid,color,size,sku', 'creator:id,name', 'movement']),
         ]);
     }
 

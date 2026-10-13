@@ -10,10 +10,13 @@ use App\Models\User;
 use App\Support\HasPublicUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class StockCount extends Model
 {
     use HasPublicUuid;
+
+    public const MOVEMENT_REFERENCE_TYPE = 'stock_count';
 
     protected $fillable = [
         'uuid',
@@ -51,5 +54,11 @@ class StockCount extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function movement(): HasOne
+    {
+        return $this->hasOne(StockMovement::class, 'reference_id')
+            ->where('reference_type', self::MOVEMENT_REFERENCE_TYPE);
     }
 }
