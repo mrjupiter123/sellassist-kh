@@ -96,6 +96,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::get('/inventory/count-campaigns', [StockCountCampaignController::class, 'index'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-campaigns.index');
     Route::post('/inventory/count-campaigns', [StockCountCampaignController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-campaigns.store');
     Route::get('/inventory/count-campaigns/{stockCountCampaign}', [StockCountCampaignController::class, 'show'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-campaigns.show');
+    Route::get('/inventory/count-campaigns/{stockCountCampaign}/worksheet', [StockCountCampaignController::class, 'worksheet'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-campaigns.worksheet');
     Route::post('/inventory/adjustments', [InventoryController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.adjustments.store');
 
     Route::get('/orders', [OrderController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');

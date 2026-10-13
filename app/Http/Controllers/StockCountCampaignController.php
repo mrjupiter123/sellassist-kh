@@ -59,4 +59,16 @@ class StockCountCampaignController extends Controller
             'progress' => $progress->execute($stockCountCampaign),
         ]);
     }
+
+    public function worksheet(StockCountCampaign $stockCountCampaign): View
+    {
+        return view('inventory.stock-count-campaign-worksheet', [
+            'campaign' => $stockCountCampaign,
+            'tasks' => $stockCountCampaign->tasks()
+                ->whereNull('stock_count_id')
+                ->with(['product:id,name,sku', 'variant:id,color,size,sku', 'assignee:id,name'])
+                ->orderBy('id')
+                ->get(),
+        ]);
+    }
 }

@@ -85,7 +85,7 @@ If the plan does not provide Supervisor, add a cPanel cron job every minute:
 * * * * * cd /home/CPANEL_USER/sellassist && /usr/local/bin/php artisan queue:work --queue=integrations,default --stop-when-empty --tries=3 --timeout=240 >> /dev/null 2>&1
 ```
 
-Add a second once-per-minute cron entry for Laravel's scheduler. It performs the hourly AI release-degradation check and the five-minute database-queue health check, then exits when nothing is due:
+Add a second once-per-minute cron entry for Laravel's scheduler. It performs the hourly AI release-degradation check, the five-minute database-queue health check, and the daily 09:00 Asia/Phnom_Penh overdue stock-count reminder, then exits when nothing is due:
 
 ```cron
 * * * * * cd /home/CPANEL_USER/sellassist && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1

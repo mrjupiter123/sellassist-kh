@@ -22,6 +22,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Physical stocktakes go through `RecordStockCount`: lock the stockable item, reject stale observed quantities, record the count even when unchanged, and adjust nonzero differences only through `AdjustStock`. Reused count UUIDs must not apply a second adjustment.
 - Planned cycle-count assignments are scheduling records only. Complete them through `CompleteStockCountTask`, which calls `RecordStockCount` inside the same transaction; only the assignee or an administrator may complete a task. Do not mark a task complete without its immutable stock-count record.
 - Cycle-count campaigns group at most 50 unique stockable assignments. Create the campaign and its tasks in one transaction; existing standalone tasks remain valid. Campaign progress is derived from task-linked stock counts and never adjusts inventory.
+- Printable campaign worksheets contain only open assignments and blank physical-count fields; never print recorded stock quantities. The scheduled overdue reminder is advisory, database-only, sent once per task to an active authorized assignee, and must never change stock or task completion state.
 - Stock cannot become negative through normal workflows.
 - Never trust prices, totals, permissions, user IDs, order statuses, or stock quantities from the frontend.
 - Order totals must be calculated server-side through `OrderCalculator`.

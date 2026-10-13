@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', $campaign->name.' · SellAssist KH')
 @section('content')
-<div class="mb-4"><a href="{{ route('inventory.stock-count-campaigns.index') }}">← Count campaigns</a><h1 class="h3 mt-2 mb-1">{{ $campaign->name }}</h1><p class="text-secondary mb-0">Created by {{ $campaign->creator->name }} · Due {{ $campaign->due_on?->format('d M Y') ?: 'not set' }}</p></div>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4"><div><a href="{{ route('inventory.stock-count-campaigns.index') }}">← Count campaigns</a><h1 class="h3 mt-2 mb-1">{{ $campaign->name }}</h1><p class="text-secondary mb-0">Created by {{ $campaign->creator->name }} · Due {{ $campaign->due_on?->format('d M Y') ?: 'not set' }}</p></div><a class="btn btn-outline-secondary" href="{{ route('inventory.stock-count-campaigns.worksheet', $campaign) }}">Print open-item worksheet</a></div>
 
 <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-secondary small">Total items</div><div class="h4 mb-0">{{ $progress['total'] }}</div></div></div></div>

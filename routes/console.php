@@ -20,3 +20,8 @@ Schedule::command('operations:heartbeat')
     ->everyFiveMinutes()
     ->withoutOverlapping(4)
     ->when(fn (): bool => is_string(config('operations.health_token')) && strlen(config('operations.health_token')) >= 32);
+
+Schedule::command('inventory:remind-overdue-counts')
+    ->dailyAt('09:00')
+    ->timezone('Asia/Phnom_Penh')
+    ->withoutOverlapping(55);

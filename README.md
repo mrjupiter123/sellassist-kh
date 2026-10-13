@@ -88,6 +88,8 @@ The **Planned counts** page lets users with `inventory.adjust` assign one active
 
 The **Count campaigns** page groups up to 50 distinct active products or variants into one named, optionally dated batch. Each item is assigned to a staff member. Creation is transactional: invalid or duplicate items leave no partial campaign. The campaign detail shows open/completed counts, discrepancy count, and progress per assignee, derived from its tasks and immutable physical-count records. Existing standalone tasks remain ungrouped.
 
+Campaign details include a printable worksheet for open assignments. It deliberately omits recorded stock quantities; staff enter their physical observations through the application, not on an imported spreadsheet. The scheduler checks overdue assignments daily at 09:00 Asia/Phnom_Penh and sends one in-app notification per overdue task to its active, authorized assignee. Completed, not-yet-due, and unauthorized assignments are skipped. The reminder is advisory and does not adjust stock or complete a task. Run `php artisan inventory:remind-overdue-counts` to perform an immediate check after deployment.
+
 Order activities are written inside the same transactions as creation, amendments, status changes, payments, returns, and refunds. Customer contact and address data is snapshotted on each order so historical receipts remain stable. Variant maintenance cannot alter stock; all stock changes continue through the inventory domain.
 
 Delivery providers and shipments live under the `Delivery` domain. Shipment transitions are centralized and audited. Courier pickup moves a packed order to shipped, delivery moves it to completed, and a courier return cancels the shipped order through the existing order action so stock restoration stays idempotent. COD is calculated from the server-side outstanding balance, kept synchronized before delivery, and remittances create linked COD payment records. Printable labels use order snapshots.
@@ -127,7 +129,7 @@ Delivery provider submissions, tracking synchronization, and webhook processing 
 php artisan queue:work --queue=integrations,default --tries=3 --timeout=240
 ```
 
-The Laravel scheduler performs hourly AI release-degradation checks. Run `php artisan schedule:run` every minute. On cPanel without a persistent worker, also invoke `queue:work --queue=integrations,default --stop-when-empty` every minute through a separate cron entry.
+The Laravel scheduler performs hourly AI release-degradation checks and daily overdue stock-count reminders. Run `php artisan schedule:run` every minute. On cPanel without a persistent worker, also invoke `queue:work --queue=integrations,default --stop-when-empty` every minute through a separate cron entry. Stock-count reminders use database notifications directly and do not require a queue worker.
 
 The scheduler also checks the database-backed `integrations` and `default` queues every five minutes. A ready job waiting at least `OPERATIONS_QUEUE_STALE_MINUTES` (15 by default) creates one in-app warning for active Operations administrators until the queue recovers. The Operations page shows queue status and the monitor's last check; an overdue check means the scheduler cron itself needs inspection. The monitor never retries, removes, or changes jobs. It cannot send an alert when both the scheduler and queue worker have stopped, so check staging/production externally as well.
 
