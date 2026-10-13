@@ -84,6 +84,8 @@ Physical stocktakes are recorded in `stock_counts` with the server-observed quan
 
 The physical-count page includes a read-only, paginated history. Authorized staff can filter by product name/SKU, product or variant UUID, discrepancy, and date, then open an individual count to see its recorded quantities and linked adjustment. No-change counts are retained even though they have no stock movement.
 
+The **Planned counts** page lets users with `inventory.adjust` assign one active product or variant to an active inventory staff member, optionally with a due date and instructions. The assignee (or an administrator) completes it through the normal physical-count action. Open/completed task totals are shown; a stale observation is rejected, and retrying the same submission cannot create another stock movement. The task is scheduling metadata, not a second inventory ledger.
+
 Order activities are written inside the same transactions as creation, amendments, status changes, payments, returns, and refunds. Customer contact and address data is snapshotted on each order so historical receipts remain stable. Variant maintenance cannot alter stock; all stock changes continue through the inventory domain.
 
 Delivery providers and shipments live under the `Delivery` domain. Shipment transitions are centralized and audited. Courier pickup moves a packed order to shipped, delivery moves it to completed, and a courier return cancels the shipped order through the existing order action so stock restoration stays idempotent. COD is calculated from the server-side outstanding balance, kept synchronized before delivery, and remittances create linked COD payment records. Printable labels use order snapshots.

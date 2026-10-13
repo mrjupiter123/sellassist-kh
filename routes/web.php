@@ -40,6 +40,7 @@ use App\Http\Controllers\SocialOrderExtractionReviewController;
 use App\Http\Controllers\SocialReplyController;
 use App\Http\Controllers\SocialReplyTemplateController;
 use App\Http\Controllers\StockCountController;
+use App\Http\Controllers\StockCountTaskController;
 use App\Http\Controllers\StockMovementExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -87,6 +88,10 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::get('/inventory/stock-counts', [StockCountController::class, 'index'])->middleware('permission:inventory.adjust')->name('inventory.stock-counts.index');
     Route::post('/inventory/stock-counts', [StockCountController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.stock-counts.store');
     Route::get('/inventory/stock-counts/{stockCount}', [StockCountController::class, 'show'])->middleware('permission:inventory.adjust')->name('inventory.stock-counts.show');
+    Route::get('/inventory/count-tasks', [StockCountTaskController::class, 'index'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-tasks.index');
+    Route::post('/inventory/count-tasks', [StockCountTaskController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-tasks.store');
+    Route::get('/inventory/count-tasks/{stockCountTask}', [StockCountTaskController::class, 'show'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-tasks.show');
+    Route::post('/inventory/count-tasks/{stockCountTask}/complete', [StockCountTaskController::class, 'complete'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-tasks.complete');
     Route::post('/inventory/adjustments', [InventoryController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.adjustments.store');
 
     Route::get('/orders', [OrderController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');

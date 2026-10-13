@@ -20,6 +20,7 @@ This is SellMate KH, branded in the application as SellAssist KH.
 - Stock-movement history is read-only, permission-gated, and filtered through validated product/variant UUIDs, movement enums, and date ranges. Never rewrite audit movements to correct stock.
 - CSV exports reuse the validated list filters, cap the row count, escape spreadsheet formulas, and omit free-text inventory notes and internal references.
 - Physical stocktakes go through `RecordStockCount`: lock the stockable item, reject stale observed quantities, record the count even when unchanged, and adjust nonzero differences only through `AdjustStock`. Reused count UUIDs must not apply a second adjustment.
+- Planned cycle-count assignments are scheduling records only. Complete them through `CompleteStockCountTask`, which calls `RecordStockCount` inside the same transaction; only the assignee or an administrator may complete a task. Do not mark a task complete without its immutable stock-count record.
 - Stock cannot become negative through normal workflows.
 - Never trust prices, totals, permissions, user IDs, order statuses, or stock quantities from the frontend.
 - Order totals must be calculated server-side through `OrderCalculator`.

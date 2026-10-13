@@ -5,6 +5,7 @@
     <a href="{{ route('inventory.index') }}">← Inventory</a>
     <h1 class="h3 mt-2 mb-1">Physical stock counts</h1>
     <p class="text-secondary mb-0">Enter what you counted. The server checks current stock before recording any difference.</p>
+    <a class="btn btn-sm btn-outline-secondary mt-2" href="{{ route('inventory.stock-count-tasks.index') }}">Planned counts</a>
 </div>
 
 <div class="row g-4">
