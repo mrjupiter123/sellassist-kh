@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Domain\Inventory\Actions\RecordStockCount;
 use App\Domain\Inventory\Actions\ReviewStockCountDiscrepancy;
+use App\Domain\Inventory\Enums\StockDiscrepancyCause;
 use App\Domain\Inventory\Models\StockCountDiscrepancyReview;
 use App\Domain\Product\Models\Product;
 use App\Models\User;
@@ -31,24 +32,33 @@ class StockDiscrepancyReviewTest extends TestCase
 
         $this->actingAs($admin)->post(route('inventory.discrepancies.review', $count), [
             'review_notes' => $notes,
+            'root_cause' => StockDiscrepancyCause::CountError->value,
         ])->assertRedirect(route('inventory.stock-counts.show', $count));
 
         $review = StockCountDiscrepancyReview::query()->sole();
         $this->assertSame($admin->id, $review->reviewed_by);
         $this->assertSame($notes, $review->review_notes);
+        $this->assertSame(StockDiscrepancyCause::CountError, $review->root_cause);
         $this->assertNotSame($notes, DB::table('stock_count_discrepancy_reviews')->value('review_notes'));
         $this->assertSame(4, $product->refresh()->stock_quantity);
         $this->assertDatabaseCount('stock_movements', 1);
 
         $this->actingAs($admin)->post(route('inventory.discrepancies.review', $count), [
             'review_notes' => $notes,
+            'root_cause' => StockDiscrepancyCause::CountError->value,
         ])->assertRedirect(route('inventory.stock-counts.show', $count));
         $this->assertDatabaseCount('stock_count_discrepancy_reviews', 1);
 
         $this->actingAs($admin)->post(route('inventory.discrepancies.review', $count), [
             'review_notes' => 'A different conclusion.',
+            'root_cause' => StockDiscrepancyCause::Receiving->value,
+        ])->assertRedirect()->assertSessionHas('error');
+        $this->actingAs($admin)->post(route('inventory.discrepancies.review', $count), [
+            'review_notes' => $notes,
+            'root_cause' => StockDiscrepancyCause::Receiving->value,
         ])->assertRedirect()->assertSessionHas('error');
         $this->assertSame($notes, $review->refresh()->review_notes);
+        $this->assertSame(StockDiscrepancyCause::CountError, $review->root_cause);
         $this->assertDatabaseCount('stock_movements', 1);
     }
 
@@ -61,7 +71,7 @@ class StockDiscrepancyReviewTest extends TestCase
         $pending = $record->execute($shirt, null, 0, 4, $admin, (string) Str::uuid());
         $unchanged = $record->execute($shirt, null, 4, 4, $admin, (string) Str::uuid());
         $reviewed = $record->execute($bag, null, 0, 2, $admin, (string) Str::uuid());
-        app(ReviewStockCountDiscrepancy::class)->execute($reviewed, $admin, 'Count and adjustment checked.');
+        app(ReviewStockCountDiscrepancy::class)->execute($reviewed, $admin, 'Count and adjustment checked.', StockDiscrepancyCause::Receiving);
         $pending->forceFill(['created_at' => '2026-10-01 12:00:00'])->save();
         $unchanged->forceFill(['created_at' => '2026-10-01 13:00:00'])->save();
         $reviewed->forceFill(['created_at' => '2026-10-05 12:00:00'])->save();
@@ -90,7 +100,7 @@ class StockDiscrepancyReviewTest extends TestCase
         $admin->assignRole('admin');
         $product = Product::factory()->create();
         $count = app(RecordStockCount::class)->execute($product, null, 0, 2, $staff, (string) Str::uuid());
-        app(ReviewStockCountDiscrepancy::class)->execute($count, $admin, 'Private supervisor note.');
+        app(ReviewStockCountDiscrepancy::class)->execute($count, $admin, 'Private supervisor note.', StockDiscrepancyCause::CountError);
 
         $this->actingAs($staff)->get(route('inventory.discrepancies.index'))->assertForbidden();
         $this->actingAs($staff)->post(route('inventory.discrepancies.review', $count), [
@@ -128,6 +138,7 @@ class StockDiscrepancyReviewTest extends TestCase
 
         $this->actingAs($admin)->post(route('inventory.discrepancies.review', $count), [
             'review_notes' => 'This is too short',
+            'root_cause' => StockDiscrepancyCause::Unexplained->value,
         ])->assertRedirect()->assertSessionHas('error');
         $this->assertDatabaseCount('stock_count_discrepancy_reviews', 0);
     }

@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Domain\Inventory\Actions\ListStockDiscrepancies;
 use App\Domain\Inventory\Actions\ReviewStockCountDiscrepancy;
 use App\Domain\Inventory\Enums\DiscrepancyReviewFilter;
+use App\Domain\Inventory\Enums\StockDiscrepancyCause;
 use App\Domain\Inventory\Models\StockCount;
 use App\Domain\Product\Models\Product;
 use App\Http\Requests\Inventory\IndexStockDiscrepanciesRequest;
@@ -34,7 +35,8 @@ class StockDiscrepancyController extends Controller
         StockCount $stockCount,
         ReviewStockCountDiscrepancy $action,
     ): RedirectResponse {
-        $action->execute($stockCount, $request->user(), $request->validated('review_notes'));
+        $data = $request->validated();
+        $action->execute($stockCount, $request->user(), $data['review_notes'], StockDiscrepancyCause::from($data['root_cause']));
 
         return redirect()->route('inventory.stock-counts.show', $stockCount)->with('success', 'Discrepancy review recorded.');
     }

@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Domain\Inventory\Actions\ListStockCounts;
 use App\Domain\Inventory\Actions\RecordStockCount;
 use App\Domain\Inventory\Enums\StockCountDifferenceFilter;
+use App\Domain\Inventory\Enums\StockDiscrepancyCause;
 use App\Domain\Inventory\Models\StockCount;
 use App\Domain\Product\Models\Product;
 use App\Domain\Product\Models\ProductVariant;
@@ -54,6 +55,7 @@ class StockCountController extends Controller
     {
         return view('inventory.stock-count-show', [
             'count' => $stockCount->load(['product:id,uuid,name,sku', 'variant:id,uuid,color,size,sku', 'creator:id,name', 'movement', 'discrepancyReview.reviewer:id,name']),
+            'discrepancyCauses' => StockDiscrepancyCause::cases(),
         ]);
     }
 

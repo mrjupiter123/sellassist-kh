@@ -41,11 +41,13 @@
             <h2 class="h5">Supervisor discrepancy review</h2>
             @if($count->discrepancyReview)
                 <p class="mb-2">Reviewed by {{ $count->discrepancyReview->reviewer->name }} on {{ $count->discrepancyReview->reviewed_at->format('d M Y H:i') }}.</p>
+                <p class="mb-2">Cause: {{ $count->discrepancyReview->root_cause?->label() ?? 'Legacy review (uncategorized)' }}</p>
                 <p class="mb-0">{{ $count->discrepancyReview->review_notes }}</p>
             @else
                 <p class="small text-secondary">Acknowledge the discrepancy after checking the count and movement. This does not change inventory, and the review cannot be edited.</p>
                 <form method="POST" action="{{ route('inventory.discrepancies.review', $count) }}">
                     @csrf
+                    <div class="mb-3"><label class="form-label" for="review-cause">Likely cause *</label><select id="review-cause" class="form-select" name="root_cause" required><option value="">Choose a cause</option>@foreach($discrepancyCauses as $cause)<option value="{{ $cause->value }}" @selected(old('root_cause') === $cause->value)>{{ $cause->label() }}</option>@endforeach</select><div class="form-text">Choose Unexplained if the cause is not yet known.</div></div>
                     <div class="mb-3"><label class="form-label" for="review-notes">Review notes *</label><textarea id="review-notes" class="form-control" name="review_notes" rows="3" minlength="5" maxlength="2000" required>{{ old('review_notes') }}</textarea><div class="form-text">Describe what was checked. Do not include customer data or credentials.</div></div>
                     <button class="btn btn-primary" type="submit">Record review</button>
                 </form>

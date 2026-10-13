@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Inventory\Models;
 
+use App\Domain\Inventory\Enums\StockDiscrepancyCause;
 use App\Models\User;
 use App\Support\HasPublicUuid;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ class StockCountDiscrepancyReview extends Model
 {
     use HasPublicUuid;
 
-    protected $fillable = ['stock_count_id', 'reviewed_by', 'review_notes', 'reviewed_at'];
+    protected $fillable = ['stock_count_id', 'reviewed_by', 'review_notes', 'root_cause', 'reviewed_at'];
 
     protected function casts(): array
     {
@@ -21,6 +22,7 @@ class StockCountDiscrepancyReview extends Model
             'stock_count_id' => 'integer',
             'reviewed_by' => 'integer',
             'review_notes' => 'encrypted',
+            'root_cause' => StockDiscrepancyCause::class,
             'reviewed_at' => 'datetime',
         ];
     }

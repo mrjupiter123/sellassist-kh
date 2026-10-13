@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Inventory\Actions;
 
+use App\Domain\Inventory\Enums\StockDiscrepancyCause;
 use App\Domain\Inventory\Exceptions\InvalidStockCountException;
 use App\Domain\Inventory\Models\StockCount;
 use App\Domain\Inventory\Models\StockCountDiscrepancyReview;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class ReviewStockCountDiscrepancy
 {
-    public function execute(StockCount $count, User $reviewer, string $notes): StockCountDiscrepancyReview
+    public function execute(StockCount $count, User $reviewer, string $notes, StockDiscrepancyCause $cause): StockCountDiscrepancyReview
     {
         $notes = trim($notes);
 
@@ -24,7 +25,7 @@ class ReviewStockCountDiscrepancy
             throw new InvalidStockCountException('Review notes must be between 5 and 2000 characters.');
         }
 
-        return DB::transaction(function () use ($count, $reviewer, $notes): StockCountDiscrepancyReview {
+        return DB::transaction(function () use ($count, $reviewer, $notes, $cause): StockCountDiscrepancyReview {
             $locked = StockCount::query()->lockForUpdate()->findOrFail($count->id);
 
             if ($locked->difference === 0) {
@@ -38,7 +39,7 @@ class ReviewStockCountDiscrepancy
             $existing = $locked->discrepancyReview()->first();
 
             if ($existing !== null) {
-                if ($existing->reviewed_by !== $reviewer->id || $existing->review_notes !== $notes) {
+                if ($existing->reviewed_by !== $reviewer->id || $existing->review_notes !== $notes || $existing->root_cause !== $cause) {
                     throw new InvalidStockCountException('This discrepancy was already reviewed and cannot be changed.');
                 }
 
@@ -48,6 +49,7 @@ class ReviewStockCountDiscrepancy
             return $locked->discrepancyReview()->create([
                 'reviewed_by' => $reviewer->id,
                 'review_notes' => $notes,
+                'root_cause' => $cause,
                 'reviewed_at' => now(),
             ]);
         });

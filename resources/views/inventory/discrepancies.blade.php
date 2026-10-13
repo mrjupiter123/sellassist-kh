@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Stock discrepancy reviews · SellAssist KH')
 @section('content')
-<div class="mb-4"><a href="{{ route('inventory.stock-counts.index') }}">← Physical counts</a><h1 class="h3 mt-2 mb-1">Stock discrepancy reviews</h1><p class="text-secondary mb-0">Supervisor acknowledgement only. Reviewing never changes stock or rewrites the original count.</p></div>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4"><div>@can('inventory.adjust')<a href="{{ route('inventory.stock-counts.index') }}">← Physical counts</a>@endcan<h1 class="h3 mt-2 mb-1">Stock discrepancy reviews</h1><p class="text-secondary mb-0">Supervisor acknowledgement only. Reviewing never changes stock or rewrites the original count.</p></div><a class="btn btn-outline-secondary" href="{{ route('inventory.discrepancies.trends') }}">View trends</a></div>
 
 <div class="row g-3 mb-4">
     <div class="col-4"><div class="card"><div class="card-body"><div class="small text-secondary">Discrepancies</div><div class="h4 mb-0">{{ $summary['total'] }}</div></div></div></div>

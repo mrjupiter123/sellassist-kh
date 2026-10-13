@@ -43,6 +43,7 @@ use App\Http\Controllers\StockCountCampaignController;
 use App\Http\Controllers\StockCountController;
 use App\Http\Controllers\StockCountTaskController;
 use App\Http\Controllers\StockDiscrepancyController;
+use App\Http\Controllers\StockDiscrepancyTrendController;
 use App\Http\Controllers\StockMovementExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -91,6 +92,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::post('/inventory/stock-counts', [StockCountController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.stock-counts.store');
     Route::get('/inventory/stock-counts/{stockCount}', [StockCountController::class, 'show'])->middleware('permission:inventory.adjust|inventory.review')->name('inventory.stock-counts.show');
     Route::get('/inventory/discrepancies', [StockDiscrepancyController::class, 'index'])->middleware('permission:inventory.review')->name('inventory.discrepancies.index');
+    Route::get('/inventory/discrepancies/trends', StockDiscrepancyTrendController::class)->middleware('permission:inventory.review')->name('inventory.discrepancies.trends');
     Route::post('/inventory/discrepancies/{stockCount}/review', [StockDiscrepancyController::class, 'storeReview'])->middleware('permission:inventory.review')->name('inventory.discrepancies.review');
     Route::get('/inventory/count-tasks', [StockCountTaskController::class, 'index'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-tasks.index');
     Route::post('/inventory/count-tasks', [StockCountTaskController::class, 'store'])->middleware('permission:inventory.adjust')->name('inventory.stock-count-tasks.store');
