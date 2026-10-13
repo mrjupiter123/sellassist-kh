@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Inventory\Actions;
 
 use App\Domain\Inventory\Exceptions\InvalidStockCountException;
+use App\Domain\Inventory\Models\StockCountCampaign;
 use App\Domain\Inventory\Models\StockCountTask;
 use App\Domain\Product\Models\Product;
 use App\Domain\Product\Models\ProductVariant;
@@ -19,6 +20,7 @@ class CreateStockCountTask
         User $creator,
         ?string $dueOn = null,
         ?string $instructions = null,
+        ?StockCountCampaign $campaign = null,
     ): StockCountTask {
         if (! $product->active || ($variant !== null && (! $variant->active || $variant->product_id !== $product->id))) {
             throw new InvalidStockCountException('Choose an active product and one of its active variants.');
@@ -33,6 +35,7 @@ class CreateStockCountTask
         }
 
         return StockCountTask::query()->create([
+            'stock_count_campaign_id' => $campaign?->id,
             'product_id' => $product->id,
             'product_variant_id' => $variant?->id,
             'assigned_to' => $assignee->id,

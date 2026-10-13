@@ -11,6 +11,7 @@
             <dt class="col-sm-5">Created by</dt><dd class="col-sm-7">{{ $task->creator->name }}</dd>
             <dt class="col-sm-5">Due</dt><dd class="col-sm-7">{{ $task->due_on?->format('d M Y') ?: 'No deadline' }}</dd>
             <dt class="col-sm-5">Status</dt><dd class="col-sm-7">{{ $task->stock_count_id ? 'Completed' : 'Open' }}</dd>
+            @if($task->campaign)<dt class="col-sm-5">Campaign</dt><dd class="col-sm-7"><a href="{{ route('inventory.stock-count-campaigns.show', $task->campaign) }}">{{ $task->campaign->name }}</a></dd>@endif
             @if($task->instructions)<dt class="col-sm-5">Instructions</dt><dd class="col-sm-7">{{ $task->instructions }}</dd>@endif
         </dl>
         @if($task->stockCount)<a href="{{ route('inventory.stock-counts.show', $task->stockCount) }}">View completed physical count</a>@endif

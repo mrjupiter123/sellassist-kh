@@ -2,7 +2,7 @@
 @section('title', 'Planned stock counts · SellAssist KH')
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-    <div><a href="{{ route('inventory.stock-counts.index') }}">← Physical counts</a><h1 class="h3 mt-2 mb-1">Planned stock counts</h1><p class="text-secondary mb-0">Assign items to staff and track which counts remain open.</p></div>
+    <div><a href="{{ route('inventory.stock-counts.index') }}">← Physical counts</a><h1 class="h3 mt-2 mb-1">Planned stock counts</h1><p class="text-secondary mb-0">Assign items to staff and track which counts remain open.</p><a class="btn btn-sm btn-outline-secondary mt-2" href="{{ route('inventory.stock-count-campaigns.index') }}">Count campaigns</a></div>
     <div><span class="badge text-bg-warning">{{ $openCount }} open</span> <span class="badge text-bg-success">{{ $completedCount }} completed</span></div>
 </div>
 

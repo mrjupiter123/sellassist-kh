@@ -66,7 +66,7 @@ class StockCountTaskController extends Controller
     public function show(StockCountTask $stockCountTask): View
     {
         return view('inventory.stock-count-task-show', [
-            'task' => $stockCountTask->load(['product', 'variant', 'assignee:id,name', 'creator:id,name', 'stockCount:id,uuid,difference']),
+            'task' => $stockCountTask->load(['product', 'variant', 'assignee:id,name', 'creator:id,name', 'stockCount:id,uuid,difference', 'campaign:id,uuid,name']),
             'submissionToken' => (string) Str::uuid(),
         ]);
     }

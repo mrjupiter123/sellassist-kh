@@ -16,6 +16,7 @@ class StockCountTask extends Model
     use HasPublicUuid;
 
     protected $fillable = [
+        'stock_count_campaign_id',
         'product_id',
         'product_variant_id',
         'assigned_to',
@@ -29,6 +30,7 @@ class StockCountTask extends Model
     protected function casts(): array
     {
         return [
+            'stock_count_campaign_id' => 'integer',
             'product_id' => 'integer',
             'product_variant_id' => 'integer',
             'assigned_to' => 'integer',
@@ -42,6 +44,11 @@ class StockCountTask extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(StockCountCampaign::class, 'stock_count_campaign_id');
     }
 
     public function variant(): BelongsTo
